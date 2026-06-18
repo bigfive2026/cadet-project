@@ -1,0 +1,290 @@
+// ArtBridge Prisma Schema
+// Source design: .moai/project/db/schema.md, erd.mmd
+// Engine: PostgreSQL · ORM: Prisma · Single-schema (no multi-tenancy)
+// Tables use snake_case physical names via @@map / @map.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ──────────────────────────────── Enums ────────────────────────────────
+
+enum Role {
+  FAN
+  CREATOR
+}
+
+enum PostVisibility {
+  PUBLIC
+  MEMBER_ONLY
+  PAID
+}
+
+enum ProgramApplicationStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  AUTO_REJECTED
+  CANCELLED
+}
+
+// @MX:NOTE: Program lifecycle states. Transitions drive side-effects (notifications, auto-reject).
+enum ProgramStatus {
+  DRAFT
+  RECRUITING
+  CLOSED
+  CONTRACTING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  RELEASED
+  REFUNDED
+  FAILED
+}
+
+enum SettlementStatus {
+  PENDING
+  RELEASED
+}
+
+// ──────────────────────────────── Models ────────────────────────────────
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  role      Role     @default(FAN)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  creatorProfile     CreatorProfile?
+  memberships        Membership[]
+  applications       ProgramApplication[]
+  notifications      Notification[]
+  paymentsAsFan      Payment[]         @relation("PaymentFan")
+  reviews            Review[]
+  communityPosts     CommunityPost[]
+
+  @@map("users")
+}
+
+model CreatorProfile {
+  id              String   @id @default(cuid())
+  userId          String   @unique @map("user_id")
+  studioName      String   @map("studio_name")
+  bio             String?
+  category        String?
+  coverImageUrl   String?  @map("cover_image_url")
+  profileImageUrl String?  @map("profile_image_url")
+  instagramUrl    String?  @map("instagram_url")
+  websiteUrl      String?
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plans          MembershipPlan[]
+  posts          Post[]
+  programs       Program[]
+  communityPosts CommunityPost[]
+
+  @@map("creator_profiles")
+}
+
+model MembershipPlan {
+  id                 String   @id @default(cuid())
+  creatorProfileId   String   @map("creator_profile_id")
+  title              String
+  description        String?
+  priceKrw           Int      @map("price_krw")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  creatorProfile CreatorProfile @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
+  memberships    Membership[]
+
+  @@index([creatorProfileId])
+  @@map("membership_plans")
+}
+
+model Membership {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  planId    String   @map("plan_id")
+  startedAt DateTime @default(now()) @map("started_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user     User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan     MembershipPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  payments Payment[]
+
+  @@unique([userId, planId])
+  @@index([planId])
+  @@map("memberships")
+}
+
+model Post {
+  id                String         @id @default(cuid())
+  creatorProfileId  String         @map("creator_profile_id")
+  title             String
+  body              String
+  visibility        PostVisibility @default(PUBLIC)
+  priceKrw          Int?           @map("price_krw")
+  createdAt         DateTime       @default(now()) @map("created_at")
+  updatedAt         DateTime       @updatedAt @map("updated_at")
+
+  creatorProfile CreatorProfile @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
+
+  @@index([creatorProfileId, createdAt])
+  @@map("posts")
+}
+
+model Program {
+  id                String        @id @default(cuid())
+  creatorProfileId  String        @map("creator_profile_id")
+  title             String
+  description       String?
+  category          String?
+  priceKrw          Int           @default(0) @map("price_krw")
+  startDate         DateTime?     @map("start_date")
+  endDate           DateTime?     @map("end_date")
+  recruitDeadline   DateTime?     @map("recruit_deadline")
+  maxParticipants   Int?          @map("max_participants")
+  status            ProgramStatus @default(RECRUITING)
+  createdAt         DateTime      @default(now()) @map("created_at")
+  updatedAt         DateTime      @updatedAt      @map("updated_at")
+  deletedAt         DateTime?     @map("deleted_at")
+
+  creatorProfile CreatorProfile          @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
+  applications   ProgramApplication[]
+  reviews        Review[]
+
+  @@index([creatorProfileId])
+  @@index([status])
+  @@map("programs")
+}
+
+model ProgramApplication {
+  id         String                   @id @default(cuid())
+  programId  String                   @map("program_id")
+  userId     String                   @map("user_id")
+  status     ProgramApplicationStatus @default(PENDING)
+  message    String?
+  createdAt  DateTime                 @default(now()) @map("created_at")
+  updatedAt  DateTime                 @updatedAt @map("updated_at")
+
+  program   Program  @relation(fields: [programId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contract  Contract?
+
+  @@index([programId, status])
+  @@index([userId])
+  @@map("program_applications")
+}
+
+model Contract {
+  id              String    @id @default(cuid())
+  applicationId   String    @unique @map("application_id")
+  terms           Json
+  agreedAmount    Int       @default(0) @map("agreed_amount")
+  fanSignedAt     DateTime? @map("fan_signed_at")
+  creatorSignedAt DateTime? @map("creator_signed_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  application ProgramApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  payments    Payment[]
+
+  @@map("contracts")
+}
+
+model Payment {
+  id            String        @id @default(cuid())
+  membershipId  String?       @map("membership_id")
+  contractId    String?       @map("contract_id")
+  fanUserId     String        @map("fan_user_id")
+  amount        Int
+  feeKrw        Int           @default(0) @map("fee_krw")
+  status        PaymentStatus @default(PENDING)
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+
+  membership Membership? @relation(fields: [membershipId], references: [id], onDelete: SetNull)
+  contract   Contract?   @relation(fields: [contractId], references: [id], onDelete: SetNull)
+  fan        User        @relation("PaymentFan", fields: [fanUserId], references: [id], onDelete: Cascade)
+  settlement Settlement?
+
+  @@index([status, createdAt])
+  @@map("payments")
+}
+
+model Settlement {
+  id        String           @id @default(cuid())
+  paymentId String           @unique @map("payment_id")
+  payout    Int
+  status    SettlementStatus @default(PENDING)
+  createdAt DateTime         @default(now()) @map("created_at")
+  updatedAt DateTime         @updatedAt @map("updated_at")
+
+  payment Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+
+  @@map("settlements")
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String    @map("user_id")
+  type      String
+  message   String
+  linkUrl   String?   @map("link_url")
+  readAt    DateTime? @map("read_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt])
+  @@map("notifications")
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  programId String   @map("program_id")
+  userId    String   @map("user_id")
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([programId, userId])
+  @@index([programId])
+  @@map("reviews")
+}
+
+// @MX:NOTE: CommunityPost — member/participant-only board (SPEC-007).
+model CommunityPost {
+  id               String   @id @default(cuid())
+  creatorProfileId String   @map("creator_profile_id")
+  authorId         String   @map("author_id")
+  title            String
+  content          String
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  creatorProfile CreatorProfile @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
+  author         User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([creatorProfileId, createdAt])
+  @@map("community_posts")
+}

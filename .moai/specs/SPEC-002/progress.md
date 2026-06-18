@@ -1,0 +1,21 @@
+## SPEC-002 Progress
+
+- Started: 2026-06-18
+- Phase 0.9 complete: language=typescript (Next.js 16 + React 19 + Prisma 6)
+- Phase 0.95 complete: scale-based mode=Standard Pipeline (multi-domain: frontend+backend+database, files>=10). Sub-agent mode (no --team, not a git repo -> worktree isolation N/A).
+- UltraThink activated for strategy phase: SPEC spans 3 domains + >=8 files.
+- Harness level: standard (evaluator final-pass mode).
+- Key note: CreatorProfile schema already complemented with category/coverImageUrl/profileImageUrl/instagramUrl/websiteUrl -> Fallback in SPEC §3 is moot; use real fields.
+- Phase 1 complete: manager-strategy produced execution plan (9 tasks, complexity 6/10). User approved: proceed, /api/creators SKIP, full seed enrichment.
+- Phase 1.5/1.6 complete: tasks.md written, 8 AC registered as failing checklist.
+- Phase 2 complete: manager-tdd implemented T-001..T-009 via RED-GREEN-REFACTOR. 14 files (5 modify + 9 create). New dep: zod@4.4.3.
+- Phase 2.5/2.75/2.8 complete (orchestrator independent verification):
+  - test: 69/69 passed (10 files), coverage stmts 99.04% / branches 85.13% / functions 100%
+  - typecheck: 0 errors
+  - lint: 0 errors, 0 warnings
+  - build: compiled, 8 routes (/api/studio, /creators/[creatorId], /dashboard/creator/edit new)
+  - AC-006 owner-check verified in source (route.ts:43, 403 before DB write)
+- All AC-001..AC-008 PASS.
+- Phase 3 (git): SKIPPED — project is not a git repository.
+- STATUS: COMPLETE
+- SYNC complete (2026-06-18): SPEC-001 + SPEC-002 spec.md §11 구현 노트 추가(둘 다 COMPLETED), tech.md(Zod/Mock Auth), structure.md(실제 구조 반영), .moai/reports/sync-report-2026-06-18.md 생성. Git Phase 3 SKIPPED (비-git 저장소).
