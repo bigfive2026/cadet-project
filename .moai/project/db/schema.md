@@ -37,7 +37,7 @@ status: migrated
 | `contracts` | `Contract` | 5 | `id` | `prisma/schema.prisma` |
 | `payments` | `Payment` | 9 | `id` | `prisma/schema.prisma` |
 | `settlements` | `Settlement` | 6 | `id` | `prisma/schema.prisma` |
-| `notifications` | `Notification` | 6 | `id` | `prisma/schema.prisma` |
+| `notifications` | `Notification` | 7 | `id` | `prisma/schema.prisma` |
 | `reviews` | `Review` | 6 | `id` | `prisma/schema.prisma` |
 
 ### Column Detail
@@ -111,7 +111,7 @@ status: migrated
 | `id` | String(cuid) | NO | `cuid()` | PK |
 | `program_id` | String | NO | — | FK → `programs.id` (Cascade) |
 | `user_id` | String | NO | — | FK → `users.id` (Cascade) |
-| `status` | enum `ProgramApplicationStatus` | NO | `PENDING` | `PENDING` \| `ACCEPTED` \| `REJECTED` |
+| `status` | enum `ProgramApplicationStatus` | NO | `PENDING` | `PENDING` \| `ACCEPTED` \| `REJECTED` \| `AUTO_REJECTED` \| `CANCELLED` |
 | `message` | String | YES | — | 신청 메시지 |
 | `created_at` | DateTime | NO | `now()` | |
 | `updated_at` | DateTime | NO | `updatedAt()` | |
@@ -155,6 +155,7 @@ status: migrated
 | `user_id` | String | NO | — | FK → `users.id` (Cascade) |
 | `type` | String | NO | — | 알림 타입 식별자 |
 | `message` | String | NO | — | |
+| `link_url` | String | YES | — | 클릭 시 이동 경로(SPEC-005) |
 | `read_at` | DateTime | YES | — | 미읽음 여부 판별(null = 안 읽음) |
 | `created_at` | DateTime | NO | `now()` | |
 
@@ -176,7 +177,7 @@ status: migrated
 |------|--------|---------|
 | `Role` | `FAN`, `CREATOR` | `users.role` |
 | `PostVisibility` | `PUBLIC`, `MEMBER_ONLY`, `PAID` | `posts.visibility` |
-| `ProgramApplicationStatus` | `PENDING`, `ACCEPTED`, `REJECTED` | `program_applications.status` |
+| `ProgramApplicationStatus` | `PENDING`, `ACCEPTED`, `REJECTED`, `AUTO_REJECTED`, `CANCELLED` | `program_applications.status` |
 | `PaymentStatus` | `PENDING`, `PAID`, `RELEASED`, `REFUNDED`, `FAILED` | `payments.status` |
 | `SettlementStatus` | `PENDING`, `RELEASED` | `settlements.status` |
 
