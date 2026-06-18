@@ -1,5 +1,7 @@
 # SPEC-003: 멤버십 플랜·가입 및 멤버 전용 포스트 접근 제어
 
+> **상태: completed** (2026-06-18) · 방법론: TDD · 커버리지 98.6% (목표 85%) · AC-001~010 전부 통과. 구현 요약은 §11 참조.
+
 ## 1. 개요
 
 - **목적**: 크리에이터가 멤버십 플랜을 생성/조회하고, 팬이 멤버십에 가입하며, `visibility=MEMBER_ONLY` 포스트를 활성 멤버에게만 공개하는 접근 제어를 구현한다.
@@ -133,3 +135,27 @@ PRD §13.1 기준.
 - 댓글 / 좋아요 — PRD §4.1 "댓글은 선택".
 - 포스트 썸네일 이미지 업로드 — 실제 `thumbnailUrl` 필드가 스키마에 없음, URL 입력만 허용하지만 본 SPEC 범위 밖 (별도 UX 결정 시).
 - 포스트 검색/필터/태그 — PRD §4.2 P1.
+
+## 11. 구현 노트 (Implementation Notes)
+
+구현 완료: 2026-06-18 · 방법론 TDD (RED-GREEN-REFACTOR) · sub-agent 모드.
+
+### 검증 결과
+- 테스트: 23 파일 / 136 테스트 통과, 커버리지 98.6% statements · 87.8% branches · 100% functions (목표 85% 초과)
+- `npm run lint` 0 errors / 0 warnings · `npm run typecheck` clean · `npm run build` 성공 (AC-010)
+- AC-001~AC-010 전부 통과
+
+### 생성/수정 파일
+- 헬퍼: `src/lib/membership.ts` (`isActiveMember`), `src/lib/post-access.ts` (`canViewPost`)
+- 검증: `src/lib/validation/membership.ts`, `src/lib/validation/post.ts` (PAID → `priceKrw>0` 조건부 검증)
+- API: `src/app/api/membership-plans/route.ts`, `src/app/api/posts/route.ts`
+- 액션: `src/app/(app)/creators/[creatorId]/actions.ts` (`joinMembership`, P2002 멱등)
+- UI 신규: `src/app/(app)/posts/[id]/page.tsx`, `src/components/posts/{PostDetail,LockedPostPreview}.tsx`, `src/components/dashboard/{PostCreateForm,MembershipPlanForm}.tsx`, 대시보드 생성 페이지 2종
+- UI 수정: `creators/[creatorId]/page.tsx`, `StudioTabs.tsx`, `MembershipPlanCardList.tsx` (멤버 상태별 가입 CTA)
+- 각 모듈에 코로케이션 테스트(.test.ts/.test.tsx) 추가
+
+### 구현상 결정 / 계획 대비 차이
+- **NFR-002 (body 미누출)**: `/posts/[id]` 서버 컴포넌트에서 `canViewPost` 판정 후, 허용 시에만 `PostDetail`에 `body` 전달. `LockedPostPreview`는 `body` prop 자체를 갖지 않아 잠금 시 본문이 HTML 응답에 포함되지 않음.
+- **가입 CTA 배선**: `"use client"` 컴포넌트 내 인라인 `"use server"` 불가 제약으로, `joinMembership` Server Action을 `MembershipPlanCardList`에 `joinAction` prop으로 주입.
+- **T-010 시드**: 기존 `prisma/seed.ts`가 이미 NFR-001(플랜 + PUBLIC/MEMBER_ONLY/PAID 포스트 + 멤버십 1건)을 충족하여 변경 없음.
+- **@MX:ANCHOR**: `canViewPost` 및 API 라우트 핸들러에 추가(보안 경계 / fan_in 보호).

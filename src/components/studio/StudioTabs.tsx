@@ -52,9 +52,13 @@ export interface StudioTabsProps {
       priceKrw: number;
     }>;
   };
+  /** 현재 로그인 사용자가 이 크리에이터의 활성 멤버인지 여부 (SPEC-003 FR-006, AC-003) */
+  isActiveMember?: boolean;
+  /** 멤버십 가입 Server Action — 서버 컴포넌트(page.tsx)에서 전달 */
+  joinAction?: (planId: string) => Promise<void>;
 }
 
-export function StudioTabs({ studio }: StudioTabsProps) {
+export function StudioTabs({ studio, isActiveMember = false, joinAction }: StudioTabsProps) {
   const [active, setActive] = useState<TabId>("intro");
 
   return (
@@ -88,7 +92,7 @@ export function StudioTabs({ studio }: StudioTabsProps) {
         ) : null}
         {active === "posts" ? <PostCardList posts={studio.posts ?? []} /> : null}
         {active === "membership" ? (
-          <MembershipPlanCardList plans={studio.plans ?? []} />
+          <MembershipPlanCardList plans={studio.plans ?? []} isActiveMember={isActiveMember} joinAction={joinAction} />
         ) : null}
         {active === "club" ? <ProgramCardList programs={studio.programs ?? []} /> : null}
         {active === "community" ? (

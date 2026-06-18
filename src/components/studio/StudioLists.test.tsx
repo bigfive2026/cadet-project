@@ -1,6 +1,11 @@
 // @vitest-environment jsdom
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
+
+// SPEC-003: joinMembership Server Action mock (MembershipPlanCardList 의존)
+vi.mock("@/app/(app)/creators/[creatorId]/actions", () => ({
+  joinMembership: vi.fn(),
+}));
 import { StudioHeader } from "@/components/studio/StudioHeader";
 import { StudioTabs } from "@/components/studio/StudioTabs";
 import { PostCardList } from "@/components/studio/PostCardList";
@@ -93,7 +98,7 @@ describe("MembershipPlanCardList (FR-005)", () => {
     const plans = [
       { id: "plan-1", title: "브론즈", description: null, priceKrw: 5000 },
     ];
-    render(<MembershipPlanCardList plans={plans} />);
+    render(<MembershipPlanCardList plans={plans} isActiveMember={false} />);
     expect(screen.getByText("브론즈")).toBeTruthy();
     expect(screen.getByText(/5,000/)).toBeTruthy();
     expect(screen.getByRole("button", { name: /멤버십 가입하기/ })).toBeTruthy();
@@ -108,12 +113,12 @@ describe("MembershipPlanCardList (FR-005)", () => {
         priceKrw: 10000,
       },
     ];
-    render(<MembershipPlanCardList plans={plans} />);
+    render(<MembershipPlanCardList plans={plans} isActiveMember={false} />);
     expect(screen.getByText("상세 혜택 설명")).toBeTruthy();
   });
 
   it("shows empty state when no plans", () => {
-    render(<MembershipPlanCardList plans={[]} />);
+    render(<MembershipPlanCardList plans={[]} isActiveMember={false} />);
     expect(screen.getByText(/아직 멤버십 플랜이 없습니다/)).toBeTruthy();
   });
 });
