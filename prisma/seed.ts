@@ -59,6 +59,9 @@ async function main() {
   await upsertPendingContract(programs[0].id, fans[1].id);
 
   await upsertNotification(fans[0].id);
+  // APPLICATION_CREATED 는 크리에이터 수신 알림(linkUrl 이 /dashboard/* 이므로)
+  // 팬에게 보내면 접근 불가. 크리에이터에게 보낸다 (UX 일관성, B5 수정).
+  await upsertCreatorNotification(creators[0].id);
   // SPEC-008 NFR-004: COMPLETED 프로그램에 리뷰 2개(rating 4, 5 → 평균 4.5).
   await upsertReviews(programs, fans);
   await upsertCommunityPost(profile.id, fans[0].id);
@@ -129,9 +132,11 @@ const CREATOR_PROFILE_DEFS = [
 
 async function ensureCreatorProfile(userId: string, index: number) {
   const def = CREATOR_PROFILE_DEFS[index] ?? CREATOR_PROFILE_DEFS[0];
+  // update 에도 필드를 채운다 — 예전에 빈 프로필로 생성된 레코드가 있으면
+  // 재실행 시 5개 확장 필드가 보강된다 (B6 수정).
   return prisma.creatorProfile.upsert({
     where: { userId },
-    update: {},
+    update: { ...def },
     create: { userId, ...def },
   });
 }
@@ -169,9 +174,10 @@ async function upsertPrograms(creatorProfileId: string) {
         category: "클래스",
         priceKrw: 30000,
         maxParticipants: 10,
-        // SPEC-004 NFR-001: 시드 프로그램은 recruitDeadline을 채운다 (미래 일자).
+        // SPEC-006 FR-007 정합: ACCEPTED + PAID 결제 참여자(demo-app-1)를 가진
+        // 프로그램은 결제 완료 시점에 IN_PROGRESS 이다. recruitDeadline은 보존.
         recruitDeadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-        status: ProgramStatus.RECRUITING,
+        status: ProgramStatus.IN_PROGRESS,
       },
     }),
     // SPEC-008 NFR-004: 완료된 프로그램 + 리뷰로 크리에이터 평점이 빈 상태로 시작하지 않도록.
@@ -408,26 +414,65 @@ async function upsertPostPurchase(postId: string, fanUserId: string) {
 
 // ──────────────────────────── 11. Notification ────────────────────────────
 
-// SPEC-005 T-016: 미읽음 알림 2~3개 추가 (AC-007 뱃지 데모)
+// SPEC-005 T-016: 미읽음 알림 2~3개 추가 (AC-007 뱃지 데모).
+// 팬(fans[0])에게 보내는 알림은 모두 팬이 접근 가능한 공개 라우트로 연결된다.
+// update 에도 값 명시 — 기존에 잘못된 linkUrl/userType 으로 생성된 레코드를 보정한다.
 async function upsertNotification(userId: string) {
   // 기존 읽음 알림
   await prisma.notification.upsert({
     where: { id: "demo-notif-1" },
-    update: {},
+    update: {
+      userId,
+      type: "APPLICATION_ACCEPTED",
+      message: "신청이 수락되었습니다.",
+      linkUrl: `/programs/demo-program-1`,
+      readAt: new Date(), // 읽음 상태
+    },
     create: {
       id: "demo-notif-1",
       userId,
       type: "APPLICATION_ACCEPTED",
       message: "신청이 수락되었습니다.",
-      linkUrl: `/dashboard/creator/programs/demo-program-1/applications`,
+      linkUrl: `/programs/demo-program-1`,
       readAt: new Date(), // 읽음 상태
     },
   });
 
-  // 미읽음 알림 1: APPLICATION_CREATED
+  // 미읽음 알림: PROGRAM_CLOSED (팬 수신 → 공개 프로그램 상세)
+  await prisma.notification.upsert({
+    where: { id: "demo-notif-3" },
+    update: {
+      userId,
+      type: "PROGRAM_CLOSED",
+      message: "프로그램 모집이 마감되었습니다.",
+      linkUrl: `/programs/demo-program-1`,
+    },
+    create: {
+      id: "demo-notif-3",
+      userId,
+      type: "PROGRAM_CLOSED",
+      message: "프로그램 모집이 마감되었습니다.",
+      linkUrl: `/programs/demo-program-1`,
+      readAt: null, // 미읽음
+    },
+  });
+
+  return prisma.notification.findMany({ where: { userId } });
+}
+
+// APPLICATION_CREATED 는 크리에이터가 수신하고 /dashboard/* 링크를 가진다.
+// 팬이 아닌 크리에이터에게 보내야 링크가 정상 동작한다 (B5 수정).
+async function upsertCreatorNotification(userId: string) {
   await prisma.notification.upsert({
     where: { id: "demo-notif-2" },
-    update: {},
+    // update 에 userId/linkUrl/message 명시 — 기존에 팬에게 잘못 할당되거나
+    // 링크가 잘못된 레코드를 크리에이터 + 정확한 링크로 보정한다 (B5 수정).
+    update: {
+      userId,
+      type: "APPLICATION_CREATED",
+      message: "새로운 신청이 도착했습니다.",
+      linkUrl: `/dashboard/creator/programs/demo-program-1/applications`,
+    },
     create: {
       id: "demo-notif-2",
       userId,
@@ -437,22 +482,6 @@ async function upsertNotification(userId: string) {
       readAt: null, // 미읽음
     },
   });
-
-  // 미읽음 알림 2: PROGRAM_CLOSED
-  await prisma.notification.upsert({
-    where: { id: "demo-notif-3" },
-    update: {},
-    create: {
-      id: "demo-notif-3",
-      userId,
-      type: "PROGRAM_CLOSED",
-      message: "프로그램 모집이 마감되었습니다.",
-      linkUrl: `/dashboard/creator/programs/demo-program-1/applications`,
-      readAt: null, // 미읽음
-    },
-  });
-
-  return prisma.notification.findMany({ where: { userId } });
 }
 
 // ──────────────────────────── 13. CommunityPost ────────────────────────────

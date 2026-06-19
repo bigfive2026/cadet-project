@@ -21,6 +21,17 @@ vi.mock("next/headers", () => ({
   cookies: vi.fn(async () => cookieStore),
 }));
 
+// --- Mock next/navigation redirect ---
+// requireUser/requireRole 는 역할 불일치/미인증 시 redirect() 를 호출한다.
+// redirect 는 never 를 반환하므로 테스트에서는 throw 하게 모킹하여
+// 호출 여부와 대상 URL 을 검증한다.
+const mockRedirect = vi.fn((url: string) => {
+  throw new Error(`REDIRECT ${url}`);
+});
+vi.mock("next/navigation", () => ({
+  redirect: (url: string) => mockRedirect(url),
+}));
+
 // --- Mock prisma ---
 const mockUserFindUnique = vi.fn();
 vi.mock("@/lib/prisma", () => ({
@@ -62,6 +73,10 @@ function asAppUser(u: typeof dbCreator): AppUser {
 beforeEach(() => {
   jar = {};
   mockUserFindUnique.mockReset();
+  mockRedirect.mockReset();
+  mockRedirect.mockImplementation((url: string) => {
+    throw new Error(`REDIRECT ${url}`);
+  });
 });
 
 afterEach(() => {
@@ -134,8 +149,9 @@ describe("getCurrentUser", () => {
 });
 
 describe("requireUser", () => {
-  it("throws when unauthenticated", async () => {
+  it("redirects to /login when unauthenticated", async () => {
     await expect(requireUser()).rejects.toThrow();
+    expect(mockRedirect).toHaveBeenCalledWith("/login");
   });
 
   it("returns the user when authenticated", async () => {
@@ -146,11 +162,13 @@ describe("requireUser", () => {
 });
 
 describe("requireRole", () => {
-  it("throws when role does not match", async () => {
+  it("redirects when role does not match (FAN accessing CREATOR route)", async () => {
     const fan = { ...dbCreator, id: "u-fan", role: "FAN", creatorProfile: null };
     mockUserFindUnique.mockResolvedValue(fan);
     await setSessionCookie(fan.id);
     await expect(requireRole("CREATOR" as never)).rejects.toThrow();
+    // CREATOR 전용 페이지에 FAN 이 접근하면 팬 홈(/creators) 로 보낸다.
+    expect(mockRedirect).toHaveBeenCalledWith("/creators");
   });
 
   it("returns the user when role matches", async () => {

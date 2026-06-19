@@ -61,6 +61,12 @@ export default async function CreatorDashboardPage() {
           포스트 작성
         </Link>
         <Link
+          href="/dashboard/creator/programs"
+          className="rounded-lg border p-4 text-sm font-medium hover:bg-muted"
+        >
+          내 프로그램
+        </Link>
+        <Link
           href="/dashboard/creator/programs/new"
           className="rounded-lg border p-4 text-sm font-medium hover:bg-muted"
         >
