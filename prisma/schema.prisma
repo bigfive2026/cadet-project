@@ -61,12 +61,16 @@ enum SettlementStatus {
 // ──────────────────────────────── Models ────────────────────────────────
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String
-  role      Role     @default(FAN)
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String
+  role          Role      @default(FAN)
+  // @MX:NOTE: SPEC-AUTH — Credentials 로그인용 해시. OAuth 가입자는 null.
+  passwordHash  String?   @map("password_hash")
+  emailVerified DateTime? @map("email_verified")
+  image         String?
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
 
   creatorProfile     CreatorProfile?
   memberships        Membership[]
@@ -76,8 +80,43 @@ model User {
   reviews            Review[]
   communityPosts     CommunityPost[]
   bookmarks          Bookmark[]
+  // @MX:NOTE: SPEC-AUTH — Auth.js PrismaAdapter (Google OAuth 계정 연결).
+  accounts           Account[]
+  sessions           Session[]
 
   @@map("users")
+}
+
+// @MX:NOTE: SPEC-AUTH — Auth.js 어댑터 표준 모델. Google OAuth 연결 정보.
+model Account {
+  id                String  @id @default(cuid())
+  userId            String  @map("user_id")
+  type              String
+  provider          String
+  providerAccountId String  @map("provider_account_id")
+  refresh_token     String? @map("refresh_token")
+  access_token      String? @map("access_token")
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @map("id_token")
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+// @MX:NOTE: SPEC-AUTH — JWT 전략이라 사용하지 않으나 PrismaAdapter 타입 정합성을 위해 포함.
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id")
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
 }
 
 model CreatorProfile {

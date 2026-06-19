@@ -1,65 +1,65 @@
 "use client";
 
 import { useActionState } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import type { LoginState } from "@/app/login/actions";
 
 /**
- * 역할 선택 로그인 카드 (F4: silent failure 개선).
- * useActionState 로 서버 액션의 { error } 를 잡아 인라인 에러 메시지를 노출한다.
- * 서버 액션은 성공 시 redirect (클라이언트 이동), 실패(예: 시드 누락) 시 { error } 반환.
+ * 이메일/비밀번호 로그인 폼 (SPEC-AUTH).
+ * useActionState 로 서버 액션의 { error } 를 잡아 인라인 에러를 노출한다.
  */
 interface LoginFormProps {
   action: (state: LoginState, formData: FormData) => Promise<LoginState>;
-  title: string;
-  description: string;
-  buttonLabel: string;
-  variant?: "default" | "outline";
+  callbackUrl?: string;
 }
 
-export function LoginForm({
-  action,
-  title,
-  description,
-  buttonLabel,
-  variant = "default",
-}: LoginFormProps) {
+export function LoginForm({ action, callbackUrl }: LoginFormProps) {
   const [state, formAction, pending] = useActionState<LoginState, FormData>(
     action,
     undefined,
   );
 
   return (
-    <form action={formAction}>
-      <Card className="h-full transition hover:ring-foreground/20">
-        <CardHeader>
-          <CardTitle className="text-lg">{title}</CardTitle>
-          <CardDescription>{description}</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <Button
-            type="submit"
-            size="lg"
-            variant={variant}
-            className="w-full"
-            disabled={pending}
-          >
-            {pending ? "이동 중…" : buttonLabel}
-          </Button>
-          {state?.error ? (
-            <p role="alert" className="text-center text-xs text-destructive">
-              {state.error}
-            </p>
-          ) : null}
-        </CardContent>
-      </Card>
+    <form action={formAction} className="space-y-4">
+      {callbackUrl ? (
+        <input type="hidden" name="callbackUrl" value={callbackUrl} />
+      ) : null}
+      <div className="space-y-2">
+        <label htmlFor="login-email" className="text-sm font-medium">
+          이메일
+        </label>
+        <Input
+          id="login-email"
+          name="email"
+          type="email"
+          autoComplete="email"
+          required
+          placeholder="you@example.com"
+          disabled={pending}
+        />
+      </div>
+      <div className="space-y-2">
+        <label htmlFor="login-password" className="text-sm font-medium">
+          비밀번호
+        </label>
+        <Input
+          id="login-password"
+          name="password"
+          type="password"
+          autoComplete="current-password"
+          required
+          disabled={pending}
+        />
+      </div>
+      <Button type="submit" className="w-full" disabled={pending}>
+        {pending ? "로그인 중…" : "로그인"}
+      </Button>
+      {state?.error ? (
+        <p role="alert" className="text-center text-xs text-destructive">
+          {state.error}
+        </p>
+      ) : null}
     </form>
   );
 }

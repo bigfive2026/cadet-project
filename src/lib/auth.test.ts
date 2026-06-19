@@ -1,30 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { AppUser } from "@/lib/types";
 
-// --- Mock store for next/headers cookies() (Next 16: async) ---
-type CookieJar = Record<string, string>;
-let jar: CookieJar = {};
-
-const cookieStore = {
-  get(name: string) {
-    return jar[name] ? { name, value: jar[name] } : undefined;
-  },
-  set(name: string, value: string) {
-    jar[name] = value;
-  },
-  delete(name: string) {
-    delete jar[name];
-  },
-};
-
-vi.mock("next/headers", () => ({
-  cookies: vi.fn(async () => cookieStore),
+// --- Mock @/auth (Auth.js auth() 세션) ---
+// getCurrentUser 는 auth() 세션에서 user.id 를 읽는다.
+const mockAuth = vi.fn();
+vi.mock("@/auth", () => ({
+  auth: (...args: unknown[]) => mockAuth(...args),
 }));
 
 // --- Mock next/navigation redirect ---
 // requireUser/requireRole 는 역할 불일치/미인증 시 redirect() 를 호출한다.
-// redirect 는 never 를 반환하므로 테스트에서는 throw 하게 모킹하여
-// 호출 여부와 대상 URL 을 검증한다.
 const mockRedirect = vi.fn((url: string) => {
   throw new Error(`REDIRECT ${url}`);
 });
@@ -41,7 +26,6 @@ vi.mock("@/lib/prisma", () => ({
 }));
 
 import { getCurrentUser, requireUser, requireRole } from "@/lib/auth";
-import { clearSession, getSessionUserId, setSessionCookie, SESSION_COOKIE } from "@/lib/session";
 
 const dbCreator = {
   id: "u-creator",
@@ -70,64 +54,47 @@ function asAppUser(u: typeof dbCreator): AppUser {
   };
 }
 
+function sessionFor(userId: string | null) {
+  return userId ? { user: { id: userId } } : null;
+}
+
 beforeEach(() => {
-  jar = {};
   mockUserFindUnique.mockReset();
   mockRedirect.mockReset();
   mockRedirect.mockImplementation((url: string) => {
     throw new Error(`REDIRECT ${url}`);
   });
+  mockAuth.mockReset();
 });
 
 afterEach(() => {
   vi.clearAllMocks();
 });
 
-describe("session cookie helpers", () => {
-  it("setSessionCookie writes the userId under the session cookie name", async () => {
-    await setSessionCookie("u-123");
-    expect(jar[SESSION_COOKIE]).toBe("u-123");
-  });
-
-  it("getSessionUserId returns null when no cookie is present", async () => {
-    await expect(getSessionUserId()).resolves.toBeNull();
-  });
-
-  it("getSessionUserId returns the stored userId", async () => {
-    await setSessionCookie("u-123");
-    await expect(getSessionUserId()).resolves.toBe("u-123");
-  });
-
-  it("clearSession removes the cookie", async () => {
-    await setSessionCookie("u-123");
-    await clearSession();
-    expect(jar[SESSION_COOKIE]).toBeUndefined();
-  });
-});
-
-describe("getCurrentUser", () => {
-  it("returns null when there is no session cookie", async () => {
+describe("getCurrentUser (SPEC-AUTH)", () => {
+  it("returns null when there is no session", async () => {
+    mockAuth.mockResolvedValue(null);
     await expect(getCurrentUser()).resolves.toBeNull();
     expect(mockUserFindUnique).not.toHaveBeenCalled();
   });
 
   it("returns null when the session user is not found in the DB", async () => {
+    mockAuth.mockResolvedValue(sessionFor("ghost"));
     mockUserFindUnique.mockResolvedValue(null);
-    await setSessionCookie("ghost");
     await expect(getCurrentUser()).resolves.toBeNull();
   });
 
   it("returns the user with creatorProfile included (AC-004)", async () => {
+    mockAuth.mockResolvedValue(sessionFor(dbCreator.id));
     mockUserFindUnique.mockResolvedValue(dbCreator);
-    await setSessionCookie(dbCreator.id);
     const user = await getCurrentUser();
     expect(user).toEqual(asAppUser(dbCreator));
     expect(user?.creatorProfile?.studioName).toBe("신진작가 스튜디오");
   });
 
-  it("queries by id and includes creatorProfile", async () => {
+  it("queries by session user id and includes creatorProfile", async () => {
+    mockAuth.mockResolvedValue(sessionFor(dbCreator.id));
     mockUserFindUnique.mockResolvedValue(dbCreator);
-    await setSessionCookie(dbCreator.id);
     await getCurrentUser();
     expect(mockUserFindUnique).toHaveBeenCalledWith({
       where: { id: dbCreator.id },
@@ -136,8 +103,8 @@ describe("getCurrentUser", () => {
   });
 
   it("propagates the 5 extended profile fields (T-001/SPEC-002)", async () => {
+    mockAuth.mockResolvedValue(sessionFor(dbCreator.id));
     mockUserFindUnique.mockResolvedValue(dbCreator);
-    await setSessionCookie(dbCreator.id);
     const user = await getCurrentUser();
     const profile = user?.creatorProfile;
     expect(profile?.category).toBe("회화");
@@ -148,32 +115,33 @@ describe("getCurrentUser", () => {
   });
 });
 
-describe("requireUser", () => {
+describe("requireUser (SPEC-AUTH)", () => {
   it("redirects to /login when unauthenticated", async () => {
+    mockAuth.mockResolvedValue(null);
     await expect(requireUser()).rejects.toThrow();
     expect(mockRedirect).toHaveBeenCalledWith("/login");
   });
 
   it("returns the user when authenticated", async () => {
+    mockAuth.mockResolvedValue(sessionFor(dbCreator.id));
     mockUserFindUnique.mockResolvedValue(dbCreator);
-    await setSessionCookie(dbCreator.id);
     await expect(requireUser()).resolves.toEqual(asAppUser(dbCreator));
   });
 });
 
-describe("requireRole", () => {
+describe("requireRole (SPEC-AUTH)", () => {
   it("redirects when role does not match (FAN accessing CREATOR route)", async () => {
     const fan = { ...dbCreator, id: "u-fan", role: "FAN", creatorProfile: null };
+    mockAuth.mockResolvedValue(sessionFor(fan.id));
     mockUserFindUnique.mockResolvedValue(fan);
-    await setSessionCookie(fan.id);
     await expect(requireRole("CREATOR" as never)).rejects.toThrow();
     // CREATOR 전용 페이지에 FAN 이 접근하면 팬 홈(/creators) 로 보낸다.
     expect(mockRedirect).toHaveBeenCalledWith("/creators");
   });
 
   it("returns the user when role matches", async () => {
+    mockAuth.mockResolvedValue(sessionFor(dbCreator.id));
     mockUserFindUnique.mockResolvedValue(dbCreator);
-    await setSessionCookie(dbCreator.id);
     await expect(requireRole("CREATOR" as never)).resolves.toEqual(asAppUser(dbCreator));
   });
 });

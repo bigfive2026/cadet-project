@@ -7,6 +7,7 @@ import {
   PaymentStatus,
   SettlementStatus,
 } from "@prisma/client";
+import bcrypt from "bcryptjs";
 
 /**
  * ArtBridge seed script.
@@ -20,6 +21,11 @@ import {
 
 const prisma = new PrismaClient();
 const FEE_RATE = 0.1; // 10% platform fee (tech.md §8)
+
+// @MX:NOTE: SPEC-AUTH — 데모 계정 공통 비밀번호. seed 실행 시점에 1회 해시.
+// 모든 시드 계정이 동일 비밀번호로 Credentials 로그인 가능하다.
+const DEMO_PASSWORD = "demo1234!";
+const DEMO_PASSWORD_HASH = bcrypt.hashSync(DEMO_PASSWORD, 10);
 
 async function main() {
   console.log("→ Seeding ArtBridge demo data…");
@@ -75,6 +81,7 @@ async function main() {
   console.log("✓ Seed complete.");
   console.log(`  creators: ${creators.map((c) => c.email).join(", ")}`);
   console.log(`  fans: ${fans.map((f) => f.email).join(", ")}`);
+  console.log(`  데모 비밀번호(모든 계정 공통): ${DEMO_PASSWORD}`);
 }
 
 // ──────────────────────────── 1. Users ────────────────────────────
@@ -89,8 +96,13 @@ async function upsertCreators() {
     defs.map((d) =>
       prisma.user.upsert({
         where: { email: d.email },
-        update: {},
-        create: { email: d.email, name: d.name, role: Role.CREATOR },
+        update: { passwordHash: DEMO_PASSWORD_HASH },
+        create: {
+          email: d.email,
+          name: d.name,
+          role: Role.CREATOR,
+          passwordHash: DEMO_PASSWORD_HASH,
+        },
       }),
     ),
   );
@@ -102,8 +114,13 @@ async function upsertFans() {
     emails.map((email, i) =>
       prisma.user.upsert({
         where: { email },
-        update: {},
-        create: { email, name: `데모 팬 ${i + 1}`, role: Role.FAN },
+        update: { passwordHash: DEMO_PASSWORD_HASH },
+        create: {
+          email,
+          name: `데모 팬 ${i + 1}`,
+          role: Role.FAN,
+          passwordHash: DEMO_PASSWORD_HASH,
+        },
       }),
     ),
   );
