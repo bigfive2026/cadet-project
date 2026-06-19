@@ -55,7 +55,8 @@ async function main() {
   await upsertPendingContract(programs[0].id, fans[1].id);
 
   await upsertNotification(fans[0].id);
-  await upsertReview(programs[0].id, fans[0].id);
+  // SPEC-008 NFR-004: COMPLETED 프로그램에 리뷰 2개(rating 4, 5 → 평균 4.5).
+  await upsertReviews(programs, fans);
   await upsertCommunityPost(profile.id, fans[0].id);
   // SPEC-007 NFR-003: 권한 사용자 관점에서 최소 2개의 커뮤니티 글이 보이도록 추가.
   // 두 번째 글은 크리에이터 본인이 작성한 공지 형태.
@@ -167,6 +168,22 @@ async function upsertPrograms(creatorProfileId: string) {
         // SPEC-004 NFR-001: 시드 프로그램은 recruitDeadline을 채운다 (미래 일자).
         recruitDeadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
         status: ProgramStatus.RECRUITING,
+      },
+    }),
+    // SPEC-008 NFR-004: 완료된 프로그램 + 리뷰로 크리에이터 평점이 빈 상태로 시작하지 않도록.
+    await prisma.program.upsert({
+      where: { id: "demo-program-completed" },
+      update: {},
+      create: {
+        id: "demo-program-completed",
+        creatorProfileId,
+        title: "데모 완료 워크숍",
+        description: "이미 완료된 데모 프로그램 — 리뷰 집계용.",
+        category: "워크숍",
+        priceKrw: 20000,
+        maxParticipants: 8,
+        recruitDeadline: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+        status: ProgramStatus.COMPLETED,
       },
     }),
   ];
@@ -450,11 +467,35 @@ async function upsertCommunityPostSecond(creatorProfileId: string, authorId: str
 
 // ──────────────────────────── 12. Review ────────────────────────────
 
-async function upsertReview(programId: string, userId: string) {
-  return prisma.review.upsert({
+// SPEC-008 NFR-004: COMPLETED 프로그램에 리뷰 2개를 추가해 크리에이터 평점이
+// 빈 상태로 시작하지 않도록 한다 (rating 4, 5 → 평균 4.5).
+async function upsertReviews(
+  programs: Array<{ id: string; status: string }>,
+  fans: Array<{ id: string }>,
+) {
+  const completed = programs.find((p) => p.status === "COMPLETED");
+  if (!completed) return;
+  await prisma.review.upsert({
     where: { id: "demo-review-1" },
     update: {},
-    create: { id: "demo-review-1", programId, userId, rating: 5, comment: "데모 후기" },
+    create: {
+      id: "demo-review-1",
+      programId: completed.id,
+      userId: fans[0].id,
+      rating: 4,
+      comment: "체계적이고 유익했어요.",
+    },
+  });
+  await prisma.review.upsert({
+    where: { id: "demo-review-2" },
+    update: {},
+    create: {
+      id: "demo-review-2",
+      programId: completed.id,
+      userId: fans[1].id,
+      rating: 5,
+      comment: "정말 만족스럽습니다!",
+    },
   });
 }
 

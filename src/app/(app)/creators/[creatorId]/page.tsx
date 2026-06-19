@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { getCreatorStudio } from "@/lib/queries/studio";
+import { getCreatorRating } from "@/lib/queries/reviews";
 import { getCurrentUser } from "@/lib/auth";
 import { isActiveMember } from "@/lib/membership";
 import { canAccessCommunity } from "@/lib/community-access";
@@ -28,11 +29,12 @@ export default async function CreatorDetailPage({
     notFound();
   }
 
-  // 서버에서 멤버 여부 + 커뮤니티 접근 권한 + 글 목록을 병렬로 로드 (NFR-001, NFR-002)
-  const [memberStatus, communityAccess, communityPosts] = await Promise.all([
+  // 서버에서 멤버 여부 + 커뮤니티 접근 권한 + 글 목록 + 평점을 병렬로 로드 (NFR-001, NFR-002)
+  const [memberStatus, communityAccess, communityPosts, rating] = await Promise.all([
     currentUser ? isActiveMember(currentUser.id, creatorId) : Promise.resolve(false),
     currentUser ? canAccessCommunity(currentUser.id, creatorId) : Promise.resolve(false),
     listCommunityPosts(creatorId),
+    getCreatorRating(creatorId),
   ]);
 
   // Server Action: 멤버십 가입 (planId 바인딩)
@@ -49,6 +51,7 @@ export default async function CreatorDetailPage({
       creatorProfileId={creatorId}
       canAccessCommunity={communityAccess}
       communityPosts={communityPosts}
+      rating={rating}
     />
   );
 }

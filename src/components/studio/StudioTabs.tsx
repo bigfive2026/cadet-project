@@ -6,6 +6,7 @@ import { PostCardList } from "@/components/studio/PostCardList";
 import { MembershipPlanCardList } from "@/components/studio/MembershipPlanCardList";
 import { ProgramCardList } from "@/components/studio/ProgramCardList";
 import { CommunityPanel } from "@/components/community/CommunityPanel";
+import { CreatorRatingSummary } from "@/components/creators/CreatorRatingSummary";
 import type { PostVisibility } from "@prisma/client";
 
 /**
@@ -69,6 +70,8 @@ export interface StudioTabsProps {
     createdAt: Date | string;
     author: { id: string; name: string };
   }>;
+  /** 크리에이터 평점 요약 (SPEC-008 FR-012). 누락 시 소개 탭에 표시하지 않는다. */
+  rating?: { avg: number | null; count: number };
 }
 
 export function StudioTabs({
@@ -78,6 +81,7 @@ export function StudioTabs({
   creatorProfileId,
   canAccessCommunity = false,
   communityPosts = [],
+  rating,
 }: StudioTabsProps) {
   const [active, setActive] = useState<TabId>("intro");
 
@@ -108,6 +112,13 @@ export function StudioTabs({
         {active === "intro" ? (
           <div className="space-y-2">
             <p className="text-sm text-muted-foreground">{studio.bio ?? "작가 소개가 없습니다."}</p>
+            {rating ? (
+              <CreatorRatingSummary
+                creatorProfileId={creatorProfileId}
+                avg={rating.avg}
+                count={rating.count}
+              />
+            ) : null}
           </div>
         ) : null}
         {active === "posts" ? <PostCardList posts={studio.posts ?? []} /> : null}

@@ -12,6 +12,8 @@ export const NOTIFICATION_TYPES = [
   "PROGRAM_CLOSED",
   // SPEC-006 FR-010: 결제 완료 알림
   "PAYMENT_COMPLETED",
+  // SPEC-008 FR-002: 완료 승인 후 리뷰 요청 알림
+  "REVIEW_REQUESTED",
 ] as const;
 
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
@@ -29,6 +31,10 @@ export function notificationHref(
 ): string | null {
   if (type === "PAYMENT_COMPLETED") {
     return ctx.contractId ? `/contracts/${ctx.contractId}` : null;
+  }
+  if (type === "REVIEW_REQUESTED") {
+    // SPEC-008 FR-011: 리뷰는 프로그램 상세에서 작성한다.
+    return ctx.programId ? `/programs/${ctx.programId}` : null;
   }
   if (!ctx.programId) return null;
   return `/dashboard/creator/programs/${ctx.programId}/applications`;
@@ -54,6 +60,8 @@ export function buildNotificationMessage(
       return "프로그램 모집이 마감되었습니다.";
     case "PAYMENT_COMPLETED":
       return "결제가 완료되었습니다.";
+    case "REVIEW_REQUESTED":
+      return "프로그램이 완료되었습니다. 리뷰를 작성해 보세요.";
     default:
       // TypeScript에서 exhaustiveness 검사를 위해
       const _exhaustive: never = type;

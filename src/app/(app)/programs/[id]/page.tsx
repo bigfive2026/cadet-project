@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { getProgramDetail } from "@/lib/queries/programs";
+import { listProgramReviews, getReviewEligibility } from "@/lib/queries/reviews";
 import { getCurrentUser } from "@/lib/auth";
 import { findActiveApplication } from "@/lib/queries/applications";
 import { ProgramDetail } from "@/components/programs/ProgramDetail";
@@ -29,9 +30,27 @@ export default async function ProgramDetailPage({
   // 본인 프로그램 여부 (SPEC-005)
   const owner = user?.creatorProfile?.id === program.creatorProfile?.id;
 
+  // 리뷰 목록 + 평점 (SPEC-008 FR-011) 및 작성 자격 (FR-005, FR-009)
+  const [{ reviews, avgRating }, eligibility] = await Promise.all([
+    listProgramReviews(id),
+    getReviewEligibility(id, user?.id ?? null),
+  ]);
+
   return (
     <div className="mx-auto max-w-2xl">
-      <ProgramDetail program={{ ...program, applied, owner }} />
+      <ProgramDetail
+        program={{
+          ...program,
+          applied,
+          owner,
+          review: {
+            canReview: eligibility.canReview,
+            alreadyReviewed: eligibility.alreadyReviewed,
+            reviews,
+            avgRating,
+          },
+        }}
+      />
     </div>
   );
 }

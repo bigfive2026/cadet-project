@@ -3,14 +3,17 @@ import type { ProgramStatus } from "@prisma/client";
 import { formatKrw } from "@/components/studio/MembershipPlanCardList";
 import { ProgramStatusBadge } from "@/components/programs/ProgramStatusBadge";
 import { ApplyButton } from "@/components/programs/ApplyButton";
+import { ProgramReviewSection } from "@/components/programs/ProgramReviewSection";
 import { Button } from "@/components/ui/button";
 import { effectiveStatus } from "@/lib/program-status";
 import { formatDate, formatProgramPeriod } from "@/lib/format";
+import type { ProgramReviewItem } from "@/lib/queries/reviews";
 
 /**
  * 공개 프로그램 상세 (SPEC-004 FR-004, FR-005, AC-003, AC-006).
  * title, description, priceKrw, category, 기간, recruitDeadline, maxParticipants,
  * 현재 status(배지), 크리에이터 요약을 표시. RECRUITING 시 "참여 신청" CTA(SPEC-005에서 활성화).
+ * SPEC-008: 하단에 완료 승인 / 리뷰 영역을 추가 (FR-001, FR-005, FR-011).
  */
 export interface ProgramDetailItem {
   id: string;
@@ -28,6 +31,13 @@ export interface ProgramDetailItem {
   applied?: boolean;
   /** 현재 사용자가 본인 프로그램인지 여부 (SPEC-005) */
   owner?: boolean;
+  /** 리뷰 영역 데이터 (SPEC-008). 누락 시 영역을 렌더하지 않는다. */
+  review?: {
+    canReview: boolean;
+    alreadyReviewed: boolean;
+    reviews: ProgramReviewItem[];
+    avgRating: number | null;
+  };
 }
 
 export function ProgramDetail({ program }: { program: ProgramDetailItem }) {
@@ -113,6 +123,19 @@ export function ProgramDetail({ program }: { program: ProgramDetailItem }) {
           </Button>
         </Link>
       )}
+
+      {/* SPEC-008: 완료 승인 / 리뷰 영역 (FR-001, FR-005, FR-011) */}
+      {program.review ? (
+        <ProgramReviewSection
+          programId={program.id}
+          status={program.status}
+          owner={owner}
+          canReview={program.review.canReview}
+          alreadyReviewed={program.review.alreadyReviewed}
+          reviews={program.review.reviews}
+          avgRating={program.review.avgRating}
+        />
+      ) : null}
     </article>
   );
 }

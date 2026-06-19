@@ -6,6 +6,16 @@
 
 ## [Unreleased]
 
+### Added — SPEC-008: 프로그램 완료 처리 및 리뷰
+
+- 완료 승인(정산 릴리스) — 크리에이터 본인이 `IN_PROGRESS` 프로그램에서 `POST /api/programs/:id/complete` 호출 시 단일 `$transaction`으로 `Program.status=COMPLETED` + 해당 `ACCEPTED`/결제완료(`PAID`) 신청자의 `Payment.status=RELEASED` + 대응 `Settlement.status=RELEASED` 전환 + 각 팬에게 `REVIEW_REQUESTED` 알림을 원자 처리(FR-001/AC-001, NFR-001/AC-004 롤백 보장).
+- 권한·상태 검증 — 비소유 크리에이터·팬 403(FR-003/AC-002), `IN_PROGRESS` 외 상태 400(FR-004/AC-003), 미존재/soft-delete 404.
+- 리뷰 작성 — 권한 참여자(`ACCEPTED` + 결제완료)가 `COMPLETED` 프로그램에 대해 `POST /api/programs/:id/reviews`로 `rating`(1~5)+`comment?` 작성(FR-005/AC-005). 1인 1회는 사전 쿼리 + DB `@@unique([programId, userId])` 이중 차단으로 409 보장(FR-006/AC-006, NFR-003). rating 범위·정수 검증(400, FR-007/AC-007). `COMPLETED` 전(400, FR-008/AC-008)·미결제·비참여자(403, FR-009/AC-009) 차단. 수정·삭제 액션 미제공(FR-010/AC-013, 수정 불가).
+- 리뷰·평점 표시 — `GET /api/programs/:id/reviews`(목록 + `avgRating` 산술평균 소수 1자리)와 크리에이터 집계 `getCreatorRating(creatorProfileId)`(`{avg, count}`, 리뷰 없으면 null). `/programs/[id]` 리뷰 영역(`ReviewList`/`ReviewForm`/`CompleteButton`)과 `/creators/[creatorId]` 소개 탭 평점 요약(`CreatorRatingSummary`)에 반영(FR-011/FR-012/AC-010~AC-012).
+- 쿼리·검증·컴포넌트 — `lib/queries/reviews.ts`(`listProgramReviews`, `getCreatorRating`, `getReviewEligibility`), `lib/validation/review.ts`(`reviewSchema`), `lib/reviews.ts`(`completeProgram`/`createReview` ServiceResult 패턴), `notification-types.ts`에 `REVIEW_REQUESTED` 추가.
+- 스키마 변경 없음 — `Review`의 `@@unique([programId, userId])`는 이미 최초 `init` 마이그레이션에 존재하여 본 SPEC은 신규 마이그레이션 불필요(스키마 문서 드리프트만 수정 — `reviews` UNIQUE COMPOSITE 인덱스/제약 보강).
+- 시드 데이터 — `COMPLETED` 프로그램 1개 + 리뷰 2개(rating 4,5 → 평균 4.5) 추가로 크리에이터 평점이 빈 상태로 시작하지 않도록 보장(NFR-004).
+
 ### Added — SPEC-007: 커뮤니티 및 멤버 관리
 
 - 커뮤니티 접근 제어 — `canAccessCommunity(userId, creatorProfileId)`(`lib/community-access.ts`) 헬퍼. 다음 중 하나면 `true`: 해당 크리에이터 활성 `Membership` / 결제완료 참여자(`ProgramApplication.status=ACCEPTED` + 연결 `Contract.payments` 중 `PAID`·`RELEASED`) / 소유 크리에이터 본인(FR-001). 권한은 다른 SPEC의 상태에서 파생되며 본 SPEC은 상태를 직접 변경하지 않음(NFR-004).

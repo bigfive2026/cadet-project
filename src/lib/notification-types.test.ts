@@ -15,6 +15,8 @@ describe("notification-types (NFR-005)", () => {
       expect(NOTIFICATION_TYPES).toContain("APPLICATION_AUTO_REJECTED");
       expect(NOTIFICATION_TYPES).toContain("PROGRAM_CLOSED");
       expect(NOTIFICATION_TYPES).toContain("PAYMENT_COMPLETED");
+      // SPEC-008 FR-002
+      expect(NOTIFICATION_TYPES).toContain("REVIEW_REQUESTED");
     });
   });
 
@@ -65,6 +67,15 @@ describe("notification-types (NFR-005)", () => {
       expect(notificationHref("PAYMENT_COMPLETED", {})).toBeNull();
     });
 
+    it("REVIEW_REQUESTED는 프로그램 상세로 연결 (SPEC-008 FR-011)", () => {
+      const result = notificationHref("REVIEW_REQUESTED", { programId: "prog-1" });
+      expect(result).toBe("/programs/prog-1");
+    });
+
+    it("REVIEW_REQUESTED는 programId가 없으면 null", () => {
+      expect(notificationHref("REVIEW_REQUESTED", {})).toBeNull();
+    });
+
     it("programId가 없으면 null을 반환", () => {
       const result = notificationHref("APPLICATION_CREATED", {});
       expect(result).toBeNull();
@@ -107,6 +118,11 @@ describe("notification-types (NFR-005)", () => {
     it("PAYMENT_COMPLETED 메시지 생성 (SPEC-006 FR-010)", () => {
       const result = buildNotificationMessage("PAYMENT_COMPLETED", {});
       expect(result).toBe("결제가 완료되었습니다.");
+    });
+
+    it("REVIEW_REQUESTED 메시지 생성 (SPEC-008 FR-002)", () => {
+      const result = buildNotificationMessage("REVIEW_REQUESTED", {});
+      expect(result).toBe("프로그램이 완료되었습니다. 리뷰를 작성해 보세요.");
     });
   });
 });
