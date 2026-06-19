@@ -6,6 +6,16 @@
 
 ## [Unreleased]
 
+### Added — SPEC-010: AI 가격·혜택·프로그램 구성 추천
+
+- AI 추천 API `POST /api/programs/ai-suggest` — 크리에이터 전용(비로그인 401, FAN 403). 입력 `{ description, duration?, category?, targetAudience? }` → `{ suggestedPrice, benefits[], programStructure[{week,title,description}], reason, source }`.
+- `lib/ai/suggest.ts` — `suggestionSchema`(zod) 런타임 검증, `suggestWithOpenAI`(네이티브 fetch + JSON Schema response_format + `AbortController` 15초 타임아웃), `suggestMock`(입력 정규화 해시 기반 결정론적 폴백), `suggestProgram`(키 존재/성공 분기 + 실패·스키마 위반 시 Mock 폴백).
+- 보안 — `OPENAI_API_KEY` 서버 사이드 only. Authorization 헤더로만 전송, 본문/응답/에러/`NEXT_PUBLIC_*` 어디에도 키 평문 노출 금지(FR-006/AC-006).
+- UI — `AiSuggestPanel`(독립 입력부 + 로딩 중 버튼 비활성화), `AiSuggestionCard`(결과 + 폴백 안내 + "추천 반영"), `NewProgramClient`(`ProgramForm` 미수정, key remount로 `priceKrw`/`description` 주입). 추천 반영은 폼 상태만 갱신(DB 미저장).
+- 환경변수 — `.env.example`의 `OPENAI_API_KEY` 항목 활성화(빈 값 허용 → Mock 폴백).
+- 신규 의존성 없음(네이티브 fetch 사용). 데모 환경(키 없음)에서도 200 + 결정론적 Mock 보장(NFR-001).
+- 검증 — `npm run lint`/`typecheck`/`build` 통과, 501 테스트 통과(신규 27).
+
 ### Added — SPEC-009: PAID 포스트 단건 구매 (Mock 결제)
 
 - 스키마 보완 — `Payment` 모델에 `postId String? @map("post_id")` 필드 + `post Post? @relation(... onDelete: SetNull)` 역관계 추가(안 A). `Post` 모델에 역관계 `payments Payment[]` 추가. 조회용 복합 인덱스 `@@index([postId, fanUserId, status])` 추가. `(membershipId, contractId, postId)` 중 정확히 하나만 not null인 제약은 앱 레이어 강제(FR-003).

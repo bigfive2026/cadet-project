@@ -104,9 +104,11 @@ artbridge/
 - 시간 남을 때만 `PortOnePaymentProvider` / `TossPaymentProvider`(sandbox) 확장
 - 수수료: `fee = amount * 0.1`, `payout = amount - fee`
 
-### 3.4 AI 추천 (`lib/ai/`)
-- `POST /api/programs/ai-suggest`: 프로그램 설명 → JSON 스키마 응답
-- API 키 없으면 결정론적 Mock 추천으로 폴백(데모 안전)
+### 3.4 AI 추천 (`lib/ai/`) — SPEC-010
+- `suggest.ts`: `suggestionSchema`(zod) + `suggestWithOpenAI`(네이티브 fetch, JSON Schema response, 15초 타임아웃) + `suggestMock`(결정론적 폴백) + `suggestProgram`(키 존재/성공 여부 분기)
+- `POST /api/programs/ai-suggest`: CREATOR 전용(401/403), 결과는 `source: openai|mock` 포함 → 클라이언트가 폴백 안내 표시
+- `OPENAI_API_KEY` 서버 사이드 only — 응답/에러/번들 노출 금지(AC-006)
+- API 키 없으면 결정론적 Mock 추천으로 폴백(데모 안전, NFR-001)
 
 ### 3.5 상태머신 (비즈니스 로직 척추)
 상태 전이 시 부수효과(알림 생성, 자동 거절)를 트리거한다. 전이는 트랜잭션으로 처리한다.
