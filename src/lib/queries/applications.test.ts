@@ -10,7 +10,7 @@ const { mockPrisma } = vi.hoisted(() => ({
 }));
 vi.mock("@/lib/prisma", () => ({ prisma: mockPrisma }));
 
-import { listApplicationsForCreator, findActiveApplication } from "./applications";
+import { listApplicationsForCreator, findActiveApplication, listMyApplications } from "./applications";
 
 describe("queries/applications (FR-002, AC-002)", () => {
   beforeEach(() => {
@@ -101,6 +101,41 @@ describe("queries/applications (FR-002, AC-002)", () => {
 
       const result = await findActiveApplication("prog-1", "u-1");
       expect(result).toBeNull();
+    });
+  });
+
+  describe("listMyApplications", () => {
+    it("팬 본인의 전체 신청을 최신 업데이트순으로 반환", async () => {
+      const mockApps = [
+        {
+          id: "app-1",
+          status: "PENDING",
+          program: { id: "prog-1", title: "클래스 A", priceKrw: 30000, status: "RECRUITING" },
+        },
+        {
+          id: "app-2",
+          status: "REJECTED",
+          program: { id: "prog-2", title: "클럽 B", priceKrw: 20000, status: "CLOSED" },
+        },
+      ];
+      mockPrisma.programApplication.findMany.mockResolvedValue(mockApps);
+
+      const result = await listMyApplications("u-fan");
+
+      expect(mockPrisma.programApplication.findMany).toHaveBeenCalledWith({
+        where: { userId: "u-fan" },
+        orderBy: { updatedAt: "desc" },
+        include: {
+          program: { select: { id: true, title: true, priceKrw: true, status: true } },
+        },
+      });
+      expect(result).toEqual(mockApps);
+    });
+
+    it("신청이 없으면 빈 목록 반환", async () => {
+      mockPrisma.programApplication.findMany.mockResolvedValue([]);
+      const result = await listMyApplications("u-fan");
+      expect(result).toEqual([]);
     });
   });
 });

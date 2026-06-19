@@ -32,6 +32,7 @@ export async function Header() {
           { href: "/dashboard/creator/posts/new", label: "포스트 작성" },
         ]
       : [
+          { href: "/dashboard/fan", label: "내 홈" },
           { href: "/creators", label: "둘러보기" },
           { href: "/programs", label: "프로그램" },
           { href: "/dashboard/fan/bookmarks", label: "관심 작가" },
