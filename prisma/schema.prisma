@@ -61,12 +61,16 @@ enum SettlementStatus {
 // ──────────────────────────────── Models ────────────────────────────────
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String
-  role      Role     @default(FAN)
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String
+  role          Role      @default(FAN)
+  // @MX:NOTE: SPEC-AUTH — Credentials 로그인용 해시. OAuth 가입자는 null.
+  passwordHash  String?   @map("password_hash")
+  emailVerified DateTime? @map("email_verified")
+  image         String?
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
 
   creatorProfile     CreatorProfile?
   memberships        Membership[]
@@ -75,8 +79,44 @@ model User {
   paymentsAsFan      Payment[]         @relation("PaymentFan")
   reviews            Review[]
   communityPosts     CommunityPost[]
+  bookmarks          Bookmark[]
+  // @MX:NOTE: SPEC-AUTH — Auth.js PrismaAdapter (Google OAuth 계정 연결).
+  accounts           Account[]
+  sessions           Session[]
 
   @@map("users")
+}
+
+// @MX:NOTE: SPEC-AUTH — Auth.js 어댑터 표준 모델. Google OAuth 연결 정보.
+model Account {
+  id                String  @id @default(cuid())
+  userId            String  @map("user_id")
+  type              String
+  provider          String
+  providerAccountId String  @map("provider_account_id")
+  refresh_token     String? @map("refresh_token")
+  access_token      String? @map("access_token")
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @map("id_token")
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+// @MX:NOTE: SPEC-AUTH — JWT 전략이라 사용하지 않으나 PrismaAdapter 타입 정합성을 위해 포함.
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id")
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
 }
 
 model CreatorProfile {
@@ -97,6 +137,7 @@ model CreatorProfile {
   posts          Post[]
   programs       Program[]
   communityPosts CommunityPost[]
+  bookmarkedBy   Bookmark[]
 
   @@map("creator_profiles")
 }
@@ -145,6 +186,7 @@ model Post {
   updatedAt         DateTime       @updatedAt @map("updated_at")
 
   creatorProfile CreatorProfile @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
+  payments       Payment[]
 
   @@index([creatorProfileId, createdAt])
   @@map("posts")
@@ -211,7 +253,13 @@ model Contract {
 model Payment {
   id            String        @id @default(cuid())
   membershipId  String?       @map("membership_id")
-  contractId    String?       @map("contract_id")
+  // SPEC-006 FR-008: 1계약 1결제 — DB 레벨 중복 결제 차단. nullable이므로
+  // 멤버십 결제(contractId=null)는 Postgres가 다중 NULL을 허용해 영향 없음.
+  contractId    String?       @unique @map("contract_id")
+  // SPEC-009 안 A: PAID 포스트 단건 구매 슬롯. membershipId/contractId와 동일한
+  // nullable 선택적 패턴. (membershipId, contractId, postId) 중 정확히 하나만 not null
+  // (앱 레이어 제약 — FR-003). 중복 구매 방지는 애플리케이션 레벨 PAID 상태 체크(FR-005).
+  postId        String?       @map("post_id")
   fanUserId     String        @map("fan_user_id")
   amount        Int
   feeKrw        Int           @default(0) @map("fee_krw")
@@ -221,10 +269,12 @@ model Payment {
 
   membership Membership? @relation(fields: [membershipId], references: [id], onDelete: SetNull)
   contract   Contract?   @relation(fields: [contractId], references: [id], onDelete: SetNull)
+  post       Post?       @relation(fields: [postId], references: [id], onDelete: SetNull)
   fan        User        @relation("PaymentFan", fields: [fanUserId], references: [id], onDelete: Cascade)
   settlement Settlement?
 
   @@index([status, createdAt])
+  @@index([postId, fanUserId, status])
   @@map("payments")
 }
 
@@ -262,6 +312,7 @@ model Review {
   userId    String   @map("user_id")
   rating    Int
   comment   String?
+  tags      String[] @default([])
   createdAt DateTime @default(now()) @map("created_at")
 
   program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
@@ -287,4 +338,19 @@ model CommunityPost {
 
   @@index([creatorProfileId, createdAt])
   @@map("community_posts")
+}
+
+// @MX:NOTE: Bookmark — 팬의 관심 작가 북마크 (PRD §7). @@unique로 중복 북마크 차단.
+model Bookmark {
+  id               String         @id @default(cuid())
+  fanId            String         @map("fan_id")
+  creatorProfileId String         @map("creator_profile_id")
+  createdAt        DateTime       @default(now()) @map("created_at")
+
+  fan            User           @relation(fields: [fanId], references: [id], onDelete: Cascade)
+  creatorProfile CreatorProfile @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
+
+  @@unique([fanId, creatorProfileId])
+  @@index([fanId])
+  @@map("bookmarks")
 }

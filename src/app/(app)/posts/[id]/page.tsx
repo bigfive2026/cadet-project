@@ -38,6 +38,9 @@ export default async function PostPage({
       title={post.title}
       creatorId={post.creatorProfileId}
       isPaid={post.visibility === "PAID"}
+      postId={post.id}
+      priceKrw={post.priceKrw}
+      isLoggedIn={currentUser !== null}
     />
   );
 }

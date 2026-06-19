@@ -139,3 +139,35 @@ PRD §13.1 기준.
 - 리뷰에 사진/미디어 첨부 — URL 입력도 본 SPEC 범위 밖.
 - 평점 조작 방지(작성자 익명화, 검증 로직) — MVP 데모 범위 밖.
 - 자동 완료 처리(기간 종료 후 자동 `COMPLETED`) — 본 SPEC은 명시적 승인만 다룸. 자동화는 별도 스케줄러 SPEC 필요.
+
+## 11. 구현 노트 (Implementation Notes)
+
+> Run(SPEC-008) 완료 후 sync 단계에서 작성. 구현 결정과 스키마 보완 결과를 기록한다.
+
+### 11.1 스키마 보완 결과
+
+- **(필수) Review 1인 1회**: `@@unique([programId, userId])`는 이미 최초 `init` 마이그레이션에 존재 → **신규 마이그레이션 불필요**. 애플리케이션 사전 쿼리(`reviews.ts` `findFirst`)와 DB 제약으로 이중 차단(NFR-003).
+- **(선택) 양방향 리뷰/태그/평점 캐시**: 본 SPEC 범위 밖이므로 미보완. 평점은 런타임 집계(`getCreatorRating` → `aggregate`)로 처리.
+- `Notification.type="REVIEW_REQUESTED"`: `type String`이므로 즉시 사용(`notification-types.ts`에 상수·메시지·href 추가).
+
+### 11.2 핵심 구현 결정
+
+- **완료 승인은 프로그램 단위**(`POST /api/programs/:id/complete`), 계약 단위가 아님. 다중 참여자 릴리스를 단일 `$transaction`에서 원자 처리(FR-001, NFR-001). 대상 결제는 `status=PAID` + `contract.application.status=ACCEPTED`로 한정.
+- **ServiceResult 패턴 재사용**: `lib/reviews.ts`는 SPEC-006 `contracts.ts`의 `{ ok: true|false, status, error }` 판별 유니온을 그대로 따름. API 라우트는 결과를 그대로 HTTP 상태로 매핑.
+- **리뷰 자격·완료 권한은 서버에서만 판정**(NFR-002). UI는 `getReviewEligibility`/`owner` 결과로 버튼 표시만 제어.
+- **완료 승인 버튼 위치**: `/dashboard/creator/programs/[id]` 대신 공개 상세 `/programs/[id]`의 owner 뷰에 통합(`ProgramReviewSection`의 `CompleteButton`). dashboard 경로는 `/programs/[id]`로 리다이렉트.
+- **평균 평점**: 산술 평균을 소수 1자리로 반올림(`Math.round(x*10)/10`), 리뷰 0건이면 `null`(`"리뷰 없음"` 표시, AC-012).
+
+### 11.3 파일 매핑 (AC → 구현)
+
+| AC | 구현 |
+|---|---|
+| AC-001~AC-004 | `lib/reviews.ts::completeProgram` + `app/api/programs/[id]/complete/route.ts` |
+| AC-005~AC-009 | `lib/reviews.ts::createReview` + `app/api/programs/[id]/reviews/route.ts` + `lib/validation/review.ts` |
+| AC-010~AC-012 | `lib/queries/reviews.ts`(`listProgramReviews`, `getCreatorRating`) + `ReviewList`/`CreatorRatingSummary` |
+| AC-013 | 리뷰 수정/삭제 라우트·액션 미제공 (`ReviewForm` 제출 후 완료 메시지만) |
+| AC-014 | `npm run lint`/`typecheck`/`build`/`test` 전체 통과 (452 tests) |
+
+### 11.4 시드 (NFR-004)
+
+- `demo-program-completed`(COMPLETED) + 리뷰 2개(rating 4, 5)를 추가해 크리에이터 프로필 평점이 빈 상태로 시작하지 않도록 보장. 기존 RECRUITING 프로그램의 리뷰는 COMPLETED 프로그램으로 이동.

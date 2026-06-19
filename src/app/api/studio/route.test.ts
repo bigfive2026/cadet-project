@@ -24,10 +24,6 @@ const baseBody = {
   studioName: "새 스튜디오 이름",
 };
 
-function jsonRes(r: Response) {
-  return { status: r.status, body: r.status === 204 ? null : r.body };
-}
-
 beforeEach(() => {
   mockUpdate.mockReset();
   mockGetCurrentUser.mockReset();

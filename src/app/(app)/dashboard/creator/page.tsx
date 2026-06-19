@@ -51,7 +51,19 @@ export default async function CreatorDashboardPage() {
             </Link>
           </div>
         </section>
-      ) : null}
+      ) : (
+        // H3: 프로필 미보유 크리에이터 첫 화면 가이드.
+        // 스튜디오 섹션이 통째로 사라져 길을 잃지 않도록 시작 액션을 안내한다.
+        <section className="space-y-2 rounded-xl border border-dashed p-4">
+          <h2 className="font-heading text-lg font-semibold">
+            스튜디오를 시작해 볼까요?
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            아직 스튜디오 정보가 없습니다. 첫 포스트를 올리거나 프로그램을 만들어
+            바로 시작할 수 있어요.
+          </p>
+        </section>
+      )}
 
       <section className="grid grid-cols-2 gap-3">
         <Link
@@ -59,6 +71,12 @@ export default async function CreatorDashboardPage() {
           className="rounded-lg border p-4 text-sm font-medium hover:bg-muted"
         >
           포스트 작성
+        </Link>
+        <Link
+          href="/dashboard/creator/programs"
+          className="rounded-lg border p-4 text-sm font-medium hover:bg-muted"
+        >
+          내 프로그램
         </Link>
         <Link
           href="/dashboard/creator/programs/new"

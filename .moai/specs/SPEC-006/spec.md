@@ -147,3 +147,14 @@ PRD §13.1 기준.
 - 에스크로 실제 은행 이체 — Mock 상태 전환으로 대체 (PRD §4.3 "관리자 정산 페이지: DB 상태 전환으로 대체").
 - 다회차 가격 협상 — PRD §4.3 Won't.
 - 세금 계산서/현금영수증 — MVP 범위 밖.
+
+## 11. 구현 노트 (Sync 시점 기록)
+
+- **상태**: completed (Level 1 spec-first).
+- **품질 게이트**: `npm run lint`(eslint .) · `npm run typecheck`(tsc --noEmit) · `npm run build`(next build) 통과, `vitest run` 367/367 통과. AC-011 충족.
+- **스키마 결정**: §3 "스키마 보완 필요"의 권장안을 채택. 마이그레이션 `20260619120000_spec006_contract_payment_align`에서 레거시 `contracts.agreed_at`을 제거하고 `agreed_amount`, `fan_signed_at`, `creator_signed_at`을 추가. 멱등 SQL로 작성해 기존 `db push` drift된 라이브 DB와 fresh `migrate reset` 양쪽에 안전.
+- **1계약 1결제 강제**: 애플리케이션 로직(409)뿐 아니라 `payments.contract_id` 유니크 인덱스로 DB 레벨에서도 강제(FR-008/AC-005). `contract_id`는 nullable이라 멤버십 결제(`contract_id IS NULL`)는 영향 없음.
+- **결제 트랜잭션**: FR-007의 Payment·Settlement 생성 + Program 상태 전환 + 알림을 단일 Prisma `$transaction`으로 원자 처리(NFR-001, AC-009).
+- **PaymentProvider**: `lib/payment/`에 인터페이스 + `MockPaymentProvider`(외부 의존 없음, 항상 성공 — NFR-002/NFR-005, AC-008) 구현. 실제 PG/콜백은 범위 밖(no-op).
+- **신규 디렉터리**: `src/app/(app)/contracts/`, `src/app/(app)/dashboard/fan/`, `src/app/api/contracts/`, `src/app/api/applications/[id]/contract/`, `src/components/contracts/`, `src/lib/payment/`, `src/lib/queries/contracts.ts`, `src/lib/validation/contract.ts`.
+- **부수 변경**: lint 인프라 `eslint.config.mjs` 신규 추가(프로젝트 유일 lint 설정), `formatKrw` 원화 표시 유틸, `PAYMENT_COMPLETED` 알림 타입, vitest 커버리지 include 범위 확장.

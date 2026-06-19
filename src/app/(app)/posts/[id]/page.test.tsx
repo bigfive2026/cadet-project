@@ -2,14 +2,16 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // prisma mock
-const { mockPostFindUnique, mockMembershipFindFirst } = vi.hoisted(() => ({
+const { mockPostFindUnique, mockMembershipFindFirst, mockPaymentFindFirst } = vi.hoisted(() => ({
   mockPostFindUnique: vi.fn(),
   mockMembershipFindFirst: vi.fn(),
+  mockPaymentFindFirst: vi.fn(),
 }));
 vi.mock("@/lib/prisma", () => ({
   prisma: {
     post: { findUnique: (...args: unknown[]) => mockPostFindUnique(...args) },
     membership: { findFirst: (...args: unknown[]) => mockMembershipFindFirst(...args) },
+    payment: { findFirst: (...args: unknown[]) => mockPaymentFindFirst(...args) },
   },
 }));
 
@@ -23,10 +25,12 @@ vi.mock("@/lib/auth", () => ({
 vi.mock("next/navigation", () => ({
   notFound: () => { throw new Error("NEXT_NOT_FOUND"); },
   redirect: vi.fn(),
+  // PurchaseButton(client)이 useRouter를 사용하므로 stub 제공.
+  useRouter: () => ({ refresh: vi.fn(), push: vi.fn() }),
 }));
 
 import PostPage from "@/app/(app)/posts/[id]/page";
-import { render, screen } from "@testing-library/react";
+import { render } from "@testing-library/react";
 
 const PUBLIC_POST = {
   id: "post-public",
@@ -66,6 +70,7 @@ function makeParams(id: string) {
 beforeEach(() => {
   mockPostFindUnique.mockReset();
   mockMembershipFindFirst.mockReset();
+  mockPaymentFindFirst.mockReset();
   mockGetCurrentUser.mockReset();
 });
 
@@ -112,12 +117,30 @@ describe("PostPage (FR-008~011, AC-001/002/004/005, NFR-002)", () => {
     expect(mockMembershipFindFirst).not.toHaveBeenCalled();
   });
 
-  it("PAID 포스트: 비구매자는 잠금 UI와 '유료 콘텐츠' 라벨을 본다 (AC-006, FR-011)", async () => {
+  it("PAID 포스트: 비구매자는 잠금 UI와 '유료 콘텐츠' 라벨을 본다 (AC-001, NFR-002)", async () => {
     mockGetCurrentUser.mockResolvedValue(FAN_USER);
     mockPostFindUnique.mockResolvedValue(PAID_POST);
+    mockPaymentFindFirst.mockResolvedValue(null); // 미구매
     const { container } = render(await PostPage({ params: makeParams("post-paid") }));
     // body가 노출되지 않아야 함 (NFR-002)
     expect(container.textContent).not.toContain("유료 본문");
     expect(container.textContent).toContain("유료 콘텐츠");
+  });
+
+  it("PAID 포스트: 구매자는 전체 body를 볼 수 있다 (SPEC-009 AC-003)", async () => {
+    mockGetCurrentUser.mockResolvedValue(FAN_USER);
+    mockPostFindUnique.mockResolvedValue(PAID_POST);
+    mockPaymentFindFirst.mockResolvedValue({ id: "pay-1", status: "PAID" }); // 구매 완료
+    const { container } = render(await PostPage({ params: makeParams("post-paid") }));
+    expect(container.textContent).toContain("유료 본문");
+  });
+
+  it("PAID 포스트: 크리에이터 본인은 결제 없이 body를 볼 수 있다 (SPEC-009 AC-005)", async () => {
+    mockGetCurrentUser.mockResolvedValue(CREATOR_USER);
+    mockPostFindUnique.mockResolvedValue(PAID_POST);
+    const { container } = render(await PostPage({ params: makeParams("post-paid") }));
+    expect(container.textContent).toContain("유료 본문");
+    // 작성자 본인 판정이므로 payment DB 조회 불필요
+    expect(mockPaymentFindFirst).not.toHaveBeenCalled();
   });
 });

@@ -1,0 +1,22 @@
+## SPEC-007 Progress
+
+- Started: 2026-06-19
+- development_mode: tdd (RED-GREEN-REFACTOR)
+- harness: standard
+- Decision: 참여자 명단 = 전체 ACCEPTED + 결제상태 배지 (AC-007)
+- Decision: 필드명은 실제 스키마 기준 `content` (SPEC 권장 `body` 대신)
+- Phase 1 complete: plan approved by user
+- Phase 2 (Run) complete: 2026-06-19 (resume)
+  - AC count met: AC-001..AC-011
+  - Tests: 412 passed (61 files) — community-access(7), community queries(2), members queries(3), community-post validation(10), community-posts API(5+12), creators page(5 incl AC-002/003/007), ParticipantList(5)
+  - Quality gates: lint(clean), typecheck(0 err), build(exit 0)
+  - Schema: CommunityPost(content) + migration 20260619140000; relations on CreatorProfile/User
+  - Seed: 2 CommunityPosts (NFR-003)
+  - Iteration log: err_fixed=0, ac_delta=+11 → no stagnation
+- Phase 3 (Sync) complete: 2026-06-19
+  - CHANGELOG.md: SPEC-007 항목 추가
+  - .moai/project/db/schema.md: CommunityPost 테이블·컬럼·관계·인덱스 추가
+  - .moai/project/db/migrations.md: 마이그레이션 20260619140000 추가, 모델 12→13
+  - .moai/project/codemaps/overview.md: SPEC-006/007 진행 반영
+  - .moai/project/structure.md: 커뮤니티 API·명단 페이지 추가
+  - spec.md §11 구현 노트 추가

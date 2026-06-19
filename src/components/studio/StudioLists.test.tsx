@@ -6,6 +6,10 @@ import { render, screen, fireEvent } from "@testing-library/react";
 vi.mock("@/app/(app)/creators/[creatorId]/actions", () => ({
   joinMembership: vi.fn(),
 }));
+// SPEC-007: CommunityPostComposer가 useRouter를 사용하므로 mock 필요
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ refresh: vi.fn(), push: vi.fn() }),
+}));
 import { StudioHeader } from "@/components/studio/StudioHeader";
 import { StudioTabs } from "@/components/studio/StudioTabs";
 import { PostCardList } from "@/components/studio/PostCardList";
@@ -163,21 +167,43 @@ describe("StudioTabs", () => {
   };
 
   it("defaults to 소개 tab", () => {
-    render(<StudioTabs studio={studioWithContent} />);
+    render(<StudioTabs studio={studioWithContent} creatorProfileId="p-1" />);
     // 소개 탭이 활성화되어 있고, 헤더의 스튜디오명이 보임
     expect(screen.getByRole("tab", { name: "소개" })).toHaveAttribute("aria-selected", "true");
     expect(screen.getByText("신진작가 스튜디오")).toBeTruthy();
   });
 
   it("switches to 포스트 tab and shows posts", () => {
-    render(<StudioTabs studio={studioWithContent} />);
+    render(<StudioTabs studio={studioWithContent} creatorProfileId="p-1" />);
     fireEvent.click(screen.getByRole("tab", { name: /포스트/ }));
     expect(screen.getByText("P1")).toBeTruthy();
   });
 
-  it("shows 커뮤니티 placeholder (FR-007)", () => {
-    render(<StudioTabs studio={studioWithContent} />);
+  it("비권한 사용자에게 커뮤니티 격벽 안내를 표시한다 (SPEC-007 FR-002, AC-001)", () => {
+    render(<StudioTabs studio={studioWithContent} creatorProfileId="p-1" canAccessCommunity={false} />);
     fireEvent.click(screen.getByRole("tab", { name: /커뮤니티/ }));
-    expect(screen.getByText(/커뮤니티는 곧 오픈됩니다/)).toBeTruthy();
+    expect(screen.getByText(/멤버십 가입 또는 프로그램 참여 시 열립니다/)).toBeTruthy();
+  });
+
+  it("권한 사용자에게 커뮤니티 글 목록과 작성 폼을 표시한다 (SPEC-007 FR-003, AC-002)", () => {
+    render(
+      <StudioTabs
+        studio={studioWithContent}
+        creatorProfileId="p-1"
+        canAccessCommunity={true}
+        communityPosts={[
+          {
+            id: "c-1",
+            title: "커뮤니티 글",
+            content: "내용",
+            createdAt: new Date("2026-01-01"),
+            author: { id: "u-1", name: "팬" },
+          },
+        ]}
+      />,
+    );
+    fireEvent.click(screen.getByRole("tab", { name: /커뮤니티/ }));
+    expect(screen.getByText("커뮤니티 글")).toBeTruthy();
+    expect(screen.getByRole("button", { name: /글 작성/ })).toBeTruthy();
   });
 });

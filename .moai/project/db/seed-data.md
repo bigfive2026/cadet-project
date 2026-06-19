@@ -35,14 +35,14 @@ status: planned
 2. `creator_profiles` — 크리에이터의 스튜디오 페이지
 3. `membership_plans` — 크리에이터의 멤버십 플랜 2개
 4. `programs` — 크리에이터의 클럽/프로그램 1~2개
-5. `posts` — 공개/멤버전용/유료 포스트 각 1개씩
+5. `posts` — 공개/멤버전용/유료 포스트 각 1개씩 (유료: `demo-post-3`, `priceKrw=5000`)
 6. `memberships` — 팬 1명의 멤버십 가입 (결제 PAID 상태)
 7. `program_applications` — 팬 1명의 프로그램 신청 (상태 분산: PENDING/ACCEPTED)
 8. `contracts` — 수락된 신청의 계약
-9. `payments` — 멤버십 결제 + 계약 결제 (수수료 10% 차감)
-10. `settlements` — RELEASED 상태 정산 1건
+9. `payments` — 멤버십 결제 + 계약 결제 (수수료 10% 차감) + PAID 포스트 단건 구매 결제(`fans[1]` → `demo-post-3`, SPEC-009)
+10. `settlements` — RELEASED 상태 정산 1건 + PAID 포스트 구매 정산 1건(SPEC-009)
 11. `notifications` — 수락 알림 등
-12. `reviews` — 완료된 프로그램 리뷰 1건
+12. `reviews` — 완료된 프로그램(`demo-program-completed`) 리뷰 2건(rating 4, 5 → 평균 4.5, SPEC-008 NFR-004)
 
 ---
 
@@ -98,4 +98,5 @@ status: planned
 | 9. 크리에이터 수락 | `ProgramApplication(ACCEPTED)` 1개 |
 | 10. 수락 알림 | `Notification` 1개 |
 | 11. 계약 + Mock 결제 | `Contract` + `Payment(PAID)` |
-| 14. 리뷰 | `Review` 1개 (완료 프로그램) |
+| 12. PAID 포스트 단건 구매 | `Payment(postId=demo-post-3, status=PAID, feeKrw=500)` + `Settlement(payout=4500, status=PENDING)` — `fans[1]`(fan2) 구매 완료, `fans[0]`(fan1) 미구매(잠금 화면 시연, SPEC-009 NFR-007) |
+| 14. 리뷰 | `Review` 2개 (rating 4, 5) — `demo-program-completed`(COMPLETED) |

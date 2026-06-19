@@ -126,7 +126,7 @@ PRD §13.1, §13.2 기준.
 - **AC-006**: Given 크리에이터 X, When `/dashboard/creator/members`에 접근하면, Then X의 모든 활성 멤버(`Membership` → `User`) 목록이 표시된다.
 - **AC-007**: Given 크리에이터 X, When `/dashboard/creator/programs/[id]/participants`에 접근하면, Then `ACCEPTED` + 결제 완료 신청자만 표시되고, 미결제 `ACCEPTED` 신청자는 "결제 대기"로 표시되거나 제외된다 (정책에 따라 표시).
 - **AC-008**: Given 팬 F, When `/dashboard/fan/memberships`에 접근하면, Then 본인의 활성 멤버십 목록(크리에이터명, 플랜명)이 표시된다.
-- **AC-009**: Given 크리에이터 B(비소유자), When B가 A의 멤버 명단 페이지에 접근하면, Then 403이 반환된다.
+- **AC-009**: Given 크리에이터 B(비소유자) 또는 비CREATOR, When A의 멤버/참여자 명단 페이지에 접근하면, Then 접근이 차단된다. Next.js App Router의 page 컴포넌트는 HTTP 상태 코드를 직접 반환할 수 없으므로(redirect/notFound만 가능), 미인증·비CREATOR는 `/login`으로 redirect, 비소유 CREATOR는 `notFound()`(정보 노출 방지)로 처리한다.
 - **AC-010**: Given 글 작성자 F, When F가 본인 글을 삭제하면, Then 글이 목록에서 제거된다. 다른 사용자 G가 F의 글 삭제를 시도하면 403이 반환된다.
 - **AC-011**: `npm run lint`, `npm run typecheck`, `npm run build`가 통과된다.
 
@@ -145,3 +145,18 @@ PRD §13.1, §13.2 기준.
 - 커뮤니티 이미지/미디어 업로드 — URL 입력만 (PRD §5.1).
 - 커뮤니티 글 검색/필터/태그 — P1.
 - 공지사항(핀) 기능 — 별도 UX 결정 시 추가 가능하나 본 SPEC 범위 밖.
+
+## 11. 구현 노트 (SYNC)
+
+- **상태**: completed (Level 1 spec-first) — TDD(RED-GREEN-REFACTOR), harness: standard.
+- **필드명 결정**: `CommunityPost.body` 대신 실제 스키마 기준 `content` 사용 (검증·쿼리·API·시드 전반이 일치).
+- **참여자 명단 정책 (AC-007)**: `ACCEPTED` 전체 표시 + 결제상태 배지. 미결제 `ACCEPTED`는 "결제 대기"로 표시(제외 아님).
+- **구현 매핑**:
+  - 접근제어 — `lib/community-access.ts` (`canAccessCommunity`, 결제완료 = `ProgramApplication.ACCEPTED` + `Contract.payments.status IN (PAID, RELEASED)`).
+  - 쿼리 — `lib/queries/community.ts`, `lib/queries/members.ts` (N+1 회피 `include`).
+  - 검증 — `lib/validation/community-post.ts`.
+  - API — `src/app/api/community-posts/route.ts` (GET/POST), `[id]/route.ts` (GET/PATCH/DELETE). 403은 서버 측(NFR-001).
+  - 페이지 — `/dashboard/creator/members`, `/dashboard/creator/programs/[id]/participants`, `/dashboard/fan/memberships`.
+  - 컴포넌트 — `src/components/community/*`.
+- **스키마 보완**: `prisma/migrations/20260619140000_spec007_community_post` (추가형, 멱등).
+- **품질**: lint(clean)·typecheck(0 err)·build(exit 0)·vitest 412/412 통과 (AC-011).

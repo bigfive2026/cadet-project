@@ -1,116 +1,94 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { AuthError } from "next-auth";
 
 // vi.hoisted ensures mocks exist before vi.mock factories run (hoisting).
-const { mockRedirect, mockSetSession, mockClearSession, mockFindMany } = vi.hoisted(() => ({
+const { mockRedirect, mockSignIn, mockSignOut, mockGetCurrentUser } = vi.hoisted(() => ({
   mockRedirect: vi.fn((path: string) => {
     throw new Error(`REDIRECT:${path}`);
   }),
-  mockSetSession: vi.fn(async () => {}),
-  mockClearSession: vi.fn(async () => {}),
-  mockFindMany: vi.fn(),
+  mockSignIn: vi.fn(),
+  mockSignOut: vi.fn(),
+  mockGetCurrentUser: vi.fn(),
 }));
 
 vi.mock("next/navigation", () => ({ redirect: mockRedirect }));
-vi.mock("@/lib/session", () => ({
-  setSessionCookie: mockSetSession,
-  clearSession: mockClearSession,
-  SESSION_COOKIE: "ab_session",
+// next-auth 의 AuthError 를 실제 모듈 평가 없이 사용 (Next16 + next-auth beta 의 next/server 해석 회피).
+vi.mock("next-auth", () => ({
+  AuthError: class AuthError extends Error {},
 }));
-vi.mock("@/lib/prisma", () => ({
-  prisma: {
-    user: { findMany: (...args: unknown[]) => mockFindMany(...args) },
-  },
+vi.mock("@/auth", () => ({
+  signIn: (...args: unknown[]) => mockSignIn(...args),
+  signOut: (...args: unknown[]) => mockSignOut(...args),
+}));
+vi.mock("@/lib/auth", () => ({
+  getCurrentUser: (...args: unknown[]) => mockGetCurrentUser(...args),
 }));
 
-import { loginAs, logout } from "@/app/login/actions";
-import type { Role } from "@prisma/client";
+import { loginWithCredentials, logout } from "@/app/login/actions";
 
-const creatorSeed = [
-  {
-    id: "u-creator",
-    email: "creator@artbridge.demo",
-    name: "데모 크리에이터",
-    role: "CREATOR" as Role,
-    creatorProfile: { id: "p-1", studioName: "스튜디오", bio: null },
-  },
-  {
-    id: "u-creator2",
-    email: "creator2@artbridge.demo",
-    name: "데모 크리에이터 2",
-    role: "CREATOR" as Role,
-    creatorProfile: { id: "p-2", studioName: "스튜디오 2", bio: null },
-  },
-];
-const fanSeed = [
-  { id: "u-fan1", email: "fan1@artbridge.demo", name: "데모 팬 1", role: "FAN" as Role, creatorProfile: null },
-  { id: "u-fan2", email: "fan2@artbridge.demo", name: "데모 팬 2", role: "FAN" as Role, creatorProfile: null },
-];
+function formData(obj: Record<string, string>): FormData {
+  const fd = new FormData();
+  for (const [k, v] of Object.entries(obj)) fd.set(k, v);
+  return fd;
+}
 
 beforeEach(() => {
   mockRedirect.mockClear();
-  mockSetSession.mockReset();
-  mockClearSession.mockReset();
-  mockFindMany.mockReset();
+  mockSignIn.mockReset();
+  mockSignOut.mockReset();
+  mockGetCurrentUser.mockReset();
 });
 
 afterEach(() => vi.clearAllMocks());
 
-describe("loginAs", () => {
-  it("logs in the first seeded creator and redirects to /dashboard/creator (FR-002)", async () => {
-    mockFindMany.mockResolvedValue(creatorSeed);
-    await expect(loginAs("CREATOR")).rejects.toThrow("REDIRECT:/dashboard/creator");
-    expect(mockSetSession).toHaveBeenCalledWith(creatorSeed[0].id);
+describe("loginWithCredentials (SPEC-AUTH)", () => {
+  it("redirects to /dashboard/creator on successful creator login", async () => {
+    mockSignIn.mockResolvedValue(undefined);
+    mockGetCurrentUser.mockResolvedValue({ role: "CREATOR" });
+    await expect(
+      loginWithCredentials(undefined, formData({ email: "creator@artbridge.demo", password: "demo1234!" })),
+    ).rejects.toThrow("REDIRECT:/dashboard/creator");
+    expect(mockSignIn).toHaveBeenCalledWith("credentials", expect.objectContaining({ email: "creator@artbridge.demo" }));
     expect(mockRedirect).toHaveBeenCalledWith("/dashboard/creator");
   });
 
-  it("logs in the first seeded fan and redirects to /creators (FR-003)", async () => {
-    mockFindMany.mockResolvedValue(fanSeed);
-    await expect(loginAs("FAN")).rejects.toThrow("REDIRECT:/creators");
-    expect(mockSetSession).toHaveBeenCalledWith(fanSeed[0].id);
-    expect(mockRedirect).toHaveBeenCalledWith("/creators");
+  it("redirects to /creators on successful fan login", async () => {
+    mockSignIn.mockResolvedValue(undefined);
+    mockGetCurrentUser.mockResolvedValue({ role: "FAN" });
+    await expect(
+      loginWithCredentials(undefined, formData({ email: "fan1@artbridge.demo", password: "demo1234!" })),
+    ).rejects.toThrow("REDIRECT:/creators");
   });
 
-  it("selects a specific seed user by index", async () => {
-    mockFindMany.mockResolvedValue(creatorSeed);
-    await expect(loginAs("CREATOR", 1)).rejects.toThrow("REDIRECT:/dashboard/creator");
-    expect(mockSetSession).toHaveBeenCalledWith(creatorSeed[1].id);
-  });
-
-  it("only selects creators that actually have a CreatorProfile (FR-009)", async () => {
-    mockFindMany.mockResolvedValue(creatorSeed);
-    await expect(loginAs("CREATOR")).rejects.toThrow();
-    expect(mockFindMany).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: expect.objectContaining({ role: "CREATOR" }),
-      }),
+  it("returns inline error on invalid credentials (no redirect)", async () => {
+    mockSignIn.mockRejectedValue(new AuthError("invalid"));
+    const result = await loginWithCredentials(
+      undefined,
+      formData({ email: "x@y.z", password: "wrong" }),
     );
+    expect(result).toEqual({ error: expect.any(String) });
+    expect(mockGetCurrentUser).not.toHaveBeenCalled();
+    expect(mockRedirect).not.toHaveBeenCalled();
   });
 
-  it("throws when no matching seed user exists", async () => {
-    mockFindMany.mockResolvedValue([]);
-    await expect(loginAs("CREATOR")).rejects.toThrow(/no seeded/i);
-    expect(mockSetSession).not.toHaveBeenCalled();
+  it("honors callbackUrl over role home", async () => {
+    mockSignIn.mockResolvedValue(undefined);
+    mockGetCurrentUser.mockResolvedValue({ role: "FAN" });
+    await expect(
+      loginWithCredentials(
+        undefined,
+        formData({ email: "fan1@artbridge.demo", password: "demo1234!", callbackUrl: "/notifications" }),
+      ),
+    ).rejects.toThrow("REDIRECT:/notifications");
   });
 });
 
-describe("logout", () => {
-  it("clears the session and redirects to /login (FR-007)", async () => {
+describe("logout (SPEC-AUTH)", () => {
+  it("signs out and redirects to /login", async () => {
+    mockSignOut.mockImplementation(() => {
+      throw new Error("REDIRECT:/login");
+    });
     await expect(logout()).rejects.toThrow("REDIRECT:/login");
-    expect(mockClearSession).toHaveBeenCalled();
-    expect(mockRedirect).toHaveBeenCalledWith("/login");
-  });
-});
-
-describe("loginAsCreator / loginAsFan wrappers (FR-001)", () => {
-  it("loginAsCreator delegates to loginAs with CREATOR", async () => {
-    const { loginAsCreator } = await import("@/app/login/actions");
-    mockFindMany.mockResolvedValue(creatorSeed);
-    await expect(loginAsCreator()).rejects.toThrow("REDIRECT:/dashboard/creator");
-  });
-
-  it("loginAsFan delegates to loginAs with FAN", async () => {
-    const { loginAsFan } = await import("@/app/login/actions");
-    mockFindMany.mockResolvedValue(fanSeed);
-    await expect(loginAsFan()).rejects.toThrow("REDIRECT:/creators");
+    expect(mockSignOut).toHaveBeenCalledWith(expect.objectContaining({ redirectTo: "/login" }));
   });
 });

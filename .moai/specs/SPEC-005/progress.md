@@ -1,0 +1,25 @@
+## SPEC-005 Progress
+
+- Started: 2026-06-18
+- Mode: TDD (RED-GREEN-REFACTOR), brownfield, harness=standard
+- Resume note: `--resume` requested but no prior progress existed → fresh run.
+- Pre-analysis findings:
+  - Schema drift (blocker): `ProgramApplicationStatus.{AUTO_REJECTED,CANCELLED}` and `notifications.link_url` are in `schema.prisma` but NOT in init migration `20260618090206_init`. New migration required (T-001).
+  - Tests are mock-based (vi.mock prisma/auth); no live DB needed for `vitest`.
+  - Coverage thresholds 80%; `vitest.config.ts` `coverage.include` is an explicit list — new files must be added (T-017).
+  - Seed already contains a `PENDING` application (`demo-app-2`) → satisfies NFR-002.
+- Unit A (backend TDD) complete: 56 new tests, schema migration created (prisma/migrations/20260618232057_add_app_status_and_notif_link)
+- Unit B (frontend) complete: ApplyButton/ApplicationList/NotificationList/NotificationBell + pages
+- Unit C (quality gate):
+  - typecheck: PASS
+  - test: 309 PASS / 0 FAIL (45 files)
+  - coverage: 88.52% lines (> 80% threshold)
+  - build: PASS (new routes /dashboard/creator/programs/[id]/applications, /notifications present)
+  - lint: TOOLCHAIN BROKEN (pre-existing) — no eslint.config.js; `next lint` removed in Next 16. Not caused by SPEC-005.
+- Defects fixed during gate:
+  - vi.mock hoisting TDZ in 4 test files (prisma mock factory) → wrapped in vi.hoisted
+  - notifications route test: Date→ISO string for JSON equality
+  - applyToProgram FR-004 test self-contradiction (creator self-program) → corrected to other-creator program
+  - processApplication AC-012: $transaction error now caught → ServiceResult(ok:false,500) instead of throwing
+- Migration deployment note: runtime DB must have ProgramApplicationStatus.{AUTO_REJECTED,CANCELLED} and notifications.link_url. Verify with `npx prisma migrate deploy` on target DB (file is correct for fresh DBs).
+- All 13 acceptance criteria implemented; AC-013 partially (lint blocked by toolchain).
