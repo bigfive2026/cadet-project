@@ -4,6 +4,7 @@ import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { formatDateTime } from "@/lib/format";
 import { Bell, Check, X, AlertCircle } from "lucide-react";
 
 /**
@@ -126,14 +127,13 @@ export function NotificationList({ notifications }: NotificationListProps) {
                 >
                   {notification.message}
                 </p>
-                <p className="text-xs text-muted-foreground">
-                  {new Date(notification.createdAt).toLocaleString("ko-KR", {
-                    year: "numeric",
-                    month: "short",
-                    day: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
+                {/* @MX:NOTE 서버(Node ICU)와 클라이언트(브라우저 Intl)의 ko-KR 포맷 미세 차이로
+                    hydration mismatch 발생 → 시간 텍스트 노드만 경고 억제. */}
+                <p
+                  className="text-xs text-muted-foreground"
+                  suppressHydrationWarning
+                >
+                  {formatDateTime(notification.createdAt)}
                 </p>
               </div>
 

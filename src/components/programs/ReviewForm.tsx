@@ -47,8 +47,9 @@ export function ReviewForm({
     });
   }
 
-  function addCustomTag(e: React.FormEvent) {
-    e.preventDefault();
+  // @MX:NOTE 외부 리뷰 폼과 중첩을 피하기 위해 form 대신 div + button(onClick) 구조.
+  // Enter 입력은 Input의 onKeyDown에서 처리한다.
+  function addCustomTag() {
     const trimmed = customTag.trim();
     if (!trimmed) return;
     if (tags.includes(trimmed)) {
@@ -159,18 +160,30 @@ export function ReviewForm({
             );
           })}
         </div>
-        <form onSubmit={addCustomTag} className="flex gap-2">
+        <div className="flex gap-2">
           <Input
             value={customTag}
             onChange={(e) => setCustomTag(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                addCustomTag();
+              }
+            }}
             maxLength={20}
             placeholder="직접 태그 입력 (최대 20자)"
             className="max-w-xs"
           />
-          <Button type="submit" variant="outline" size="sm" disabled={tags.length >= MAX_TAGS}>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={tags.length >= MAX_TAGS}
+            onClick={addCustomTag}
+          >
             추가
           </Button>
-        </form>
+        </div>
         {tags.length > 0 ? (
           <div className="flex flex-wrap gap-2">
             {tags.map((tag) => (

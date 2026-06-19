@@ -2,6 +2,7 @@
  * 커뮤니티 글 목록 (SPEC-007 FR-003, AC-002, AC-004).
  * 제목, 작성자명, 작성일(ko locale), 본문을 최신순으로 렌더링한다.
  */
+import { formatDateTime } from "@/lib/format";
 interface CommunityPost {
   id: string;
   title: string;
@@ -34,7 +35,7 @@ export function CommunityPostList({ posts }: CommunityPostListProps) {
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <span>{post.author.name}</span>
             <span aria-hidden>·</span>
-            <span>{new Date(post.createdAt).toLocaleString("ko-KR")}</span>
+            <span>{formatDateTime(post.createdAt)}</span>
           </div>
         </article>
       ))}

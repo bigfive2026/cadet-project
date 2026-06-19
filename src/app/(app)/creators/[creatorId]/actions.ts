@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { toggleBookmark } from "@/lib/bookmarks";
+import { mockPaymentProvider } from "@/lib/payment/provider";
 import { revalidatePath } from "next/cache";
 import type { Membership } from "@prisma/client";
 
@@ -18,9 +19,33 @@ export async function joinMembership(planId: string): Promise<Membership> {
     throw new Error("Unauthorized: 로그인이 필요합니다.");
   }
 
+  const plan = await prisma.membershipPlan.findUnique({
+    where: { id: planId },
+    select: { priceKrw: true },
+  });
+  if (!plan) {
+    throw new Error("플랜을 찾을 수 없습니다.");
+  }
+
+  // PRD §8.3: 멤버십 가입 → Mock 결제 후 ACTIVE
+  await mockPaymentProvider.charge({ amount: plan.priceKrw });
+
   try {
-    return await prisma.membership.create({
-      data: { userId: user.id, planId },
+    return await prisma.$transaction(async (tx) => {
+      const membership = await tx.membership.create({
+        data: { userId: user.id, planId },
+      });
+      const feeKrw = Math.round(plan.priceKrw * 0.1);
+      await tx.payment.create({
+        data: {
+          membershipId: membership.id,
+          fanUserId: user.id,
+          amount: plan.priceKrw,
+          feeKrw,
+          status: "PAID",
+        },
+      });
+      return membership;
     });
   } catch (err) {
     // NFR-003: @@unique([userId, planId]) 중복 시 P2002 → 기존 레코드 반환

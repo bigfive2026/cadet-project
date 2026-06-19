@@ -202,6 +202,23 @@ export async function processApplication(
         }
       }
 
+      // PRD §14.1: CONTRACTING 전이 — autoRejectOthers이거나 정원이 충족되면 모집 종료
+      if (application.program.status === "RECRUITING") {
+        let shouldContracting = autoRejectOthers;
+        if (!shouldContracting && application.program.maxParticipants !== null) {
+          const acceptedCount = await tx.programApplication.count({
+            where: { programId: application.programId, status: "ACCEPTED" },
+          });
+          shouldContracting = acceptedCount >= application.program.maxParticipants;
+        }
+        if (shouldContracting) {
+          await tx.program.update({
+            where: { id: application.programId },
+            data: { status: "CONTRACTING" },
+          });
+        }
+      }
+
       // 신청자에게 수락 알림
       await tx.notification.create({
         data: {

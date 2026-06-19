@@ -4,6 +4,7 @@ import { formatKrw } from "@/components/studio/MembershipPlanCardList";
 import { ProgramStatusBadge } from "@/components/programs/ProgramStatusBadge";
 import { ApplyButton } from "@/components/programs/ApplyButton";
 import { ProgramReviewSection } from "@/components/programs/ProgramReviewSection";
+import { OpenContractButton } from "@/components/contracts/OpenContractButton";
 import { Button } from "@/components/ui/button";
 import { effectiveStatus } from "@/lib/program-status";
 import { formatDate, formatProgramPeriod } from "@/lib/format";
@@ -29,6 +30,8 @@ export interface ProgramDetailItem {
   creatorProfile?: { id: string; studioName: string } | null;
   /** 현재 사용자의 신청 여부 (SPEC-005) */
   applied?: boolean;
+  /** ACCEPTED 신청의 id — 결제 CTA 표시용 (C1 fix) */
+  acceptedApplicationId?: string | null;
   /** 현재 사용자가 본인 프로그램인지 여부 (SPEC-005) */
   owner?: boolean;
   /** 리뷰 영역 데이터 (SPEC-008). 누락 시 영역을 렌더하지 않는다. */
@@ -48,6 +51,7 @@ export function ProgramDetail({ program }: { program: ProgramDetailItem }) {
   const period = formatProgramPeriod(program.startDate, program.endDate);
   const deadline = formatDate(program.recruitDeadline);
   const applied = program.applied ?? false;
+  const acceptedApplicationId = program.acceptedApplicationId ?? null;
   const owner = program.owner ?? false;
 
   return (
@@ -111,6 +115,12 @@ export function ProgramDetail({ program }: { program: ProgramDetailItem }) {
           recruiting={true}
           owner={owner}
         />
+      ) : acceptedApplicationId ? (
+        <div className="rounded-md border border-primary/20 bg-primary/5 p-4 space-y-2">
+          <p className="text-sm font-medium">신청이 수락되었습니다.</p>
+          <p className="text-xs text-muted-foreground">계약에 서명하고 결제를 완료해 주세요.</p>
+          <OpenContractButton applicationId={acceptedApplicationId} label="계약·결제 진행하기" />
+        </div>
       ) : (
         <p className="text-sm text-muted-foreground">현재 모집 중이 아닙니다.</p>
       )}

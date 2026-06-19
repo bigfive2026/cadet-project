@@ -4,6 +4,7 @@
  */
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
+import { formatDate } from "@/lib/format";
 
 interface MyMembershipRow {
   id: string;
@@ -50,7 +51,7 @@ export function MyMemberships({ memberships }: MyMembershipsProps) {
             <p className="text-sm text-muted-foreground">{membership.plan.title}</p>
           </div>
           <p className="text-xs text-muted-foreground shrink-0">
-            {new Date(membership.startedAt).toLocaleDateString("ko-KR")} 가입
+            {formatDate(membership.startedAt)} 가입
           </p>
         </li>
       ))}

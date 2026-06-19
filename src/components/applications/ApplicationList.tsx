@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { formatDateTime } from "@/lib/format";
 
 /**
  * 신청 상태 배지 스타일 (SPEC-005 FR-003).
@@ -122,7 +123,7 @@ export function ApplicationList({ applications }: ApplicationListProps) {
                 </p>
               ) : null}
               <p className="text-xs text-muted-foreground mt-1">
-                {new Date(application.createdAt).toLocaleString("ko-KR")}
+                {formatDateTime(application.createdAt)}
               </p>
             </div>
 

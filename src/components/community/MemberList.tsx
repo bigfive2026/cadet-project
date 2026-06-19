@@ -2,6 +2,7 @@
  * 크리에이터 스튜디오 활성 멤버 목록 (SPEC-007 FR-008, AC-006).
  * 이름, 플랜명, 가입일을 표시한다.
  */
+import { formatDate } from "@/lib/format";
 interface MemberRow {
   id: string;
   startedAt: Date | string;
@@ -34,7 +35,7 @@ export function MemberList({ members }: MemberListProps) {
             <p className="text-sm text-muted-foreground">{member.plan.title}</p>
           </div>
           <p className="text-xs text-muted-foreground shrink-0">
-            {new Date(member.startedAt).toLocaleDateString("ko-KR")} 가입
+            {formatDate(member.startedAt)} 가입
           </p>
         </li>
       ))}

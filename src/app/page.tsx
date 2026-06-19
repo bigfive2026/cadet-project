@@ -15,22 +15,6 @@ import { ProgramCard } from "@/components/programs/ProgramCard";
 export default async function Home() {
   const user = await getCurrentUser();
 
-  if (user) {
-    const homeHref =
-      user.role === "CREATOR" ? "/dashboard/creator" : "/dashboard/fan";
-    return (
-      <main className="flex min-h-screen flex-col items-center justify-center gap-6 p-8">
-        <h1 className="text-4xl font-bold tracking-tight">ArtBridge</h1>
-        <p className="max-w-md text-center text-muted-foreground">
-          다시 돌아오셨네요. 이어서 계속해 볼까요?
-        </p>
-        <Link href={homeHref} className={buttonVariants({ size: "lg" })}>
-          내 페이지로 이동
-        </Link>
-      </main>
-    );
-  }
-
   const [creators, programs] = await Promise.all([
     listCreators(),
     listPublicPrograms(),
@@ -38,8 +22,24 @@ export default async function Home() {
   const featuredCreators = creators.slice(0, 3);
   const featuredPrograms = programs.slice(0, 3);
 
+  const homeHref = user
+    ? user.role === "CREATOR"
+      ? "/dashboard/creator"
+      : "/dashboard/fan"
+    : null;
+
   return (
     <main className="mx-auto max-w-5xl space-y-16 px-4 py-16">
+      {/* 로그인 상태 배너 */}
+      {user && homeHref && (
+        <div className="flex items-center justify-between rounded-lg border bg-muted/40 px-4 py-3">
+          <p className="text-sm text-muted-foreground">다시 돌아오셨네요, {user.name}님!</p>
+          <Link href={homeHref} className={buttonVariants({ size: "sm" })}>
+            내 페이지로 이동
+          </Link>
+        </div>
+      )}
+
       {/* 히어로 */}
       <section className="space-y-6 text-center">
         <div className="space-y-4">
@@ -50,9 +50,11 @@ export default async function Home() {
           </p>
         </div>
         <div className="flex flex-wrap items-center justify-center gap-3">
-          <Link href="/login" className={buttonVariants({ size: "lg" })}>
-            시작하기
-          </Link>
+          {!user && (
+            <Link href="/login" className={buttonVariants({ size: "lg" })}>
+              시작하기
+            </Link>
+          )}
           <Link
             href="/creators"
             className={buttonVariants({ size: "lg", variant: "outline" })}

@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { AuthError } from "next-auth";
 import { signIn, signOut } from "@/auth";
 import { getCurrentUser } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 
 /**
  * 인증 서버 액션 (SPEC-AUTH).
@@ -30,6 +31,12 @@ export async function loginWithCredentials(
   const password = String(formData.get("password") ?? "");
   const callbackUrl = String(formData.get("callbackUrl") ?? "");
 
+  // signIn 전에 role을 조회해 두면 세션 반영 타이밍 문제를 피할 수 있다.
+  const dbUser = await prisma.user.findUnique({
+    where: { email },
+    select: { role: true },
+  });
+
   try {
     await signIn("credentials", { email, password, redirect: false });
   } catch (err) {
@@ -39,13 +46,20 @@ export async function loginWithCredentials(
   }
 
   if (callbackUrl) redirect(callbackUrl);
-  const user = await getCurrentUser();
-  redirect(roleHome(user?.role));
+  redirect(roleHome(dbUser?.role));
 }
 
 /** Google OAuth 로그인 (provider 가 env 에 있을 때만 호출됨). */
 export async function loginWithGoogle(): Promise<void> {
   await signIn("google", { redirectTo: "/" });
+}
+
+/** 데모 원클릭 로그인 (M1 fix). */
+export async function loginAsDemo(role: "creator" | "fan"): Promise<void> {
+  const email = role === "creator" ? "creator@artbridge.demo" : "fan1@artbridge.demo";
+  await signIn("credentials", { email, password: "demo1234!", redirect: false });
+  // role 인자로 이미 목적지를 알고 있으므로 세션 조회 없이 직접 계산한다.
+  redirect(roleHome(role === "creator" ? "CREATOR" : "FAN"));
 }
 
 /** 로그아웃 — 세션 종료 후 /login 으로 이동. */

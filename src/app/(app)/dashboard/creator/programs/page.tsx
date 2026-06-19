@@ -64,6 +64,12 @@ export default async function CreatorProgramsPage() {
               </div>
               <div className="flex shrink-0 items-center gap-2">
                 <Link
+                  href={`/dashboard/creator/programs/${program.id}/applications`}
+                  className="text-sm font-medium text-primary underline-offset-4 hover:underline"
+                >
+                  신청 관리
+                </Link>
+                <Link
                   href={`/dashboard/creator/programs/${program.id}/edit`}
                   className="text-sm font-medium text-primary underline-offset-4 hover:underline"
                 >

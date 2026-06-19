@@ -26,6 +26,9 @@ export default async function ProgramDetailPage({
   // 활성 신청 조회 (SPEC-005 FR-002)
   const activeApplication = user ? await findActiveApplication(id, user.id) : null;
   const applied = !!activeApplication;
+  // C1 fix: ACCEPTED 신청이면 결제 CTA 표시용 id를 전달
+  const acceptedApplicationId =
+    activeApplication?.status === "ACCEPTED" ? activeApplication.id : null;
 
   // 본인 프로그램 여부 (SPEC-005)
   const owner = user?.creatorProfile?.id === program.creatorProfile?.id;
@@ -42,6 +45,7 @@ export default async function ProgramDetailPage({
         program={{
           ...program,
           applied,
+          acceptedApplicationId,
           owner,
           review: {
             canReview: eligibility.canReview,

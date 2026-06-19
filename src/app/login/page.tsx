@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LoginForm } from "./LoginForm";
-import { loginWithCredentials, loginWithGoogle } from "./actions";
+import { loginWithCredentials, loginWithGoogle, loginAsDemo } from "./actions";
 
 /**
  * 로그인 페이지 (SPEC-AUTH).
@@ -63,9 +63,27 @@ export default async function LoginPage({
         </CardContent>
       </Card>
 
-      <p className="text-xs text-gray-500">
-        데모 계정: creator@artbridge.demo / fan1@artbridge.demo (비밀번호 demo1234!)
-      </p>
+      <div className="w-full max-w-sm space-y-2">
+        <p className="text-center text-xs text-muted-foreground">데모 계정으로 바로 시작하기</p>
+        <div className="flex gap-2">
+          <form action={loginAsDemo.bind(null, "creator")} className="flex-1">
+            <button
+              type="submit"
+              className="w-full rounded-md border py-2 text-sm font-medium hover:bg-muted"
+            >
+              크리에이터로 시작하기
+            </button>
+          </form>
+          <form action={loginAsDemo.bind(null, "fan")} className="flex-1">
+            <button
+              type="submit"
+              className="w-full rounded-md border py-2 text-sm font-medium hover:bg-muted"
+            >
+              팬으로 시작하기
+            </button>
+          </form>
+        </div>
+      </div>
     </main>
   );
 }

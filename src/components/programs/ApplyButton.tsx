@@ -49,7 +49,7 @@ export function ApplyButton({ programId, applied, recruiting, owner }: ApplyButt
         const response = await fetch(`/api/programs/${programId}/applications`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message: message || null }),
+          body: JSON.stringify({ message: message.trim() || undefined }),
         });
 
         const data = await response.json();
