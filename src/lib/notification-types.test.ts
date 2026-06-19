@@ -28,32 +28,50 @@ describe("notification-types (NFR-005)", () => {
       expect(result).toBe("/dashboard/creator/programs/prog-1/applications");
     });
 
-    it("APPLICATION_ACCEPTED는 프로그램 신청 목록으로 연결", () => {
+    it("APPLICATION_ACCEPTED는 팬이 접근 가능한 프로그램 상세로 연결 (AC-008)", () => {
       const result = notificationHref("APPLICATION_ACCEPTED", {
         programId: "prog-1",
       });
-      expect(result).toBe("/dashboard/creator/programs/prog-1/applications");
+      expect(result).toBe("/programs/prog-1");
     });
 
-    it("APPLICATION_REJECTED는 프로그램 신청 목록으로 연결", () => {
+    it("APPLICATION_REJECTED는 팬이 접근 가능한 프로그램 상세로 연결 (AC-008)", () => {
       const result = notificationHref("APPLICATION_REJECTED", {
         programId: "prog-1",
       });
-      expect(result).toBe("/dashboard/creator/programs/prog-1/applications");
+      expect(result).toBe("/programs/prog-1");
     });
 
-    it("APPLICATION_AUTO_REJECTED는 프로그램 신청 목록으로 연결", () => {
+    it("APPLICATION_AUTO_REJECTED는 팬이 접근 가능한 프로그램 상세로 연결 (AC-008)", () => {
       const result = notificationHref("APPLICATION_AUTO_REJECTED", {
         programId: "prog-1",
       });
-      expect(result).toBe("/dashboard/creator/programs/prog-1/applications");
+      expect(result).toBe("/programs/prog-1");
     });
 
-    it("PROGRAM_CLOSED는 프로그램 신청 목록으로 연결", () => {
+    it("PROGRAM_CLOSED는 팬이 접근 가능한 프로그램 상세로 연결 (AC-008)", () => {
       const result = notificationHref("PROGRAM_CLOSED", {
         programId: "prog-1",
       });
-      expect(result).toBe("/dashboard/creator/programs/prog-1/applications");
+      expect(result).toBe("/programs/prog-1");
+    });
+
+    // 회귀 방지: 팬이 수신하는 알림 링크는 /dashboard/* 로 시작해선 안 된다
+    // (proxy가 /dashboard를 보호하므로 팬은 로그인 페이지로 튕김).
+    it("팬 수신 알림은 보호 라우트(/dashboard)로 시작하지 않는다 (AC-008 접근성 회귀 방지)", () => {
+      const fanAudienceTypes: NotificationType[] = [
+        "APPLICATION_ACCEPTED",
+        "APPLICATION_REJECTED",
+        "APPLICATION_AUTO_REJECTED",
+        "PROGRAM_CLOSED",
+        "REVIEW_REQUESTED",
+      ];
+      for (const type of fanAudienceTypes) {
+        const result = notificationHref(type, { programId: "prog-1" });
+        expect(result, `${type} should not point to /dashboard`).not.toMatch(
+          /^\/dashboard/,
+        );
+      }
     });
 
     it("PAYMENT_COMPLETED는 계약 확인 페이지로 연결 (SPEC-006 FR-010)", () => {

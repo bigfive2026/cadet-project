@@ -169,6 +169,26 @@ describe("completeProgram (FR-001~FR-004, NFR-001)", () => {
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.status).toBe(500);
   });
+
+  it("settlement 갱신 실패 시 트랜잭션이 롤백되어 500 (AC-004, NFR-001)", async () => {
+    // Settlement 에러가 .catch로 삼켜지지 않고 트랜잭션 전체를 reject시키는지 검증.
+    mockPrisma.program.findUnique.mockResolvedValue(programFixture());
+    wireTransaction();
+    mockPrisma.payment.findMany.mockResolvedValue([
+      { id: "pay-1", fanUserId: FAN_ID },
+    ]);
+    mockPrisma.payment.update.mockResolvedValue({ id: "pay-1" });
+    mockPrisma.settlement.update.mockRejectedValue(new Error("settlement boom"));
+    mockPrisma.notification.create.mockResolvedValue({ id: "n-1" });
+
+    const result = await completeProgram(CREATOR_CTX, PROGRAM_ID);
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.status).toBe(500);
+    // Payment=RELEASED는 시도되었으나, Settlement 실패로 커밋되지 않아야 한다(롤백).
+    expect(mockPrisma.payment.update).toHaveBeenCalledTimes(1);
+    expect(mockPrisma.settlement.update).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe("createReview (FR-005~FR-010, NFR-003)", () => {
@@ -187,6 +207,7 @@ describe("createReview (FR-005~FR-010, NFR-003)", () => {
     const result = await createReview(FAN_CTX, PROGRAM_ID, {
       rating: 5,
       comment: "좋았습니다",
+      tags: ["소통이 좋아요"],
     });
 
     expect(result.ok).toBe(true);
@@ -196,6 +217,7 @@ describe("createReview (FR-005~FR-010, NFR-003)", () => {
       userId: FAN_ID,
       rating: 5,
       comment: "좋았습니다",
+      tags: ["소통이 좋아요"],
     });
   });
 
@@ -209,6 +231,7 @@ describe("createReview (FR-005~FR-010, NFR-003)", () => {
     const result = await createReview(FAN_CTX, PROGRAM_ID, {
       rating: 4,
       comment: null,
+      tags: [],
     });
 
     expect(result.ok).toBe(false);
@@ -223,6 +246,7 @@ describe("createReview (FR-005~FR-010, NFR-003)", () => {
     const result = await createReview(FAN_CTX, PROGRAM_ID, {
       rating: 5,
       comment: null,
+      tags: [],
     });
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.status).toBe(400);
@@ -236,6 +260,7 @@ describe("createReview (FR-005~FR-010, NFR-003)", () => {
     const result = await createReview(FAN_CTX, PROGRAM_ID, {
       rating: 5,
       comment: null,
+      tags: [],
     });
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.status).toBe(403);
@@ -246,6 +271,7 @@ describe("createReview (FR-005~FR-010, NFR-003)", () => {
     const result = await createReview(FAN_CTX, PROGRAM_ID, {
       rating: 5,
       comment: null,
+      tags: [],
     });
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.status).toBe(404);
@@ -264,6 +290,7 @@ describe("createReview (FR-005~FR-010, NFR-003)", () => {
     const result = await createReview(FAN_CTX, PROGRAM_ID, {
       rating: 5,
       comment: null,
+      tags: [],
     });
 
     expect(result.ok).toBe(false);

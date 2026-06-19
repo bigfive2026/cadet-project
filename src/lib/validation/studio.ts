@@ -2,9 +2,8 @@ import { z } from "zod";
 
 /**
  * 스튜디오 편집 폼 검증 스키마 (SPEC-002 AC-005, FR-006).
- * URL 필드는 빈 문자열("") 허용 → 필드 해제. 유효한 경우에만 URL 형식 검사.
- *
- * @MX:NOTE: [AUTO] 빈 문자열 → undefined 매핑은 라우트 핸들러에서 처리
+ * URL 필드는 빈 문자열("") 허용 → 라우트 핸들러에서 null(필드 해제)로 매핑.
+ * 유효한 문자열인 경우에만 URL 형식을 검사한다.
  */
 const optionalUrl = z
   .string()

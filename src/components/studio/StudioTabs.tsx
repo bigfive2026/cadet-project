@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import type { ReactNode } from "react";
 import { StudioHeader } from "@/components/studio/StudioHeader";
 import { PostCardList } from "@/components/studio/PostCardList";
 import { MembershipPlanCardList } from "@/components/studio/MembershipPlanCardList";
@@ -72,6 +73,8 @@ export interface StudioTabsProps {
   }>;
   /** 크리에이터 평점 요약 (SPEC-008 FR-012). 누락 시 소개 탭에 표시하지 않는다. */
   rating?: { avg: number | null; count: number };
+  /** 헤더 우측 액션 슬롯 (예: 관심 작가 북마크 버튼, PRD §13.2). */
+  headerAction?: ReactNode;
 }
 
 export function StudioTabs({
@@ -82,12 +85,13 @@ export function StudioTabs({
   canAccessCommunity = false,
   communityPosts = [],
   rating,
+  headerAction,
 }: StudioTabsProps) {
   const [active, setActive] = useState<TabId>("intro");
 
   return (
     <div className="space-y-4">
-      <StudioHeader studio={studio} />
+      <StudioHeader studio={studio} action={headerAction} />
 
       <nav className="flex gap-2 border-b" role="tablist">
         {TABS.map((t) => (

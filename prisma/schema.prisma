@@ -75,6 +75,7 @@ model User {
   paymentsAsFan      Payment[]         @relation("PaymentFan")
   reviews            Review[]
   communityPosts     CommunityPost[]
+  bookmarks          Bookmark[]
 
   @@map("users")
 }
@@ -97,6 +98,7 @@ model CreatorProfile {
   posts          Post[]
   programs       Program[]
   communityPosts CommunityPost[]
+  bookmarkedBy   Bookmark[]
 
   @@map("creator_profiles")
 }
@@ -271,6 +273,7 @@ model Review {
   userId    String   @map("user_id")
   rating    Int
   comment   String?
+  tags      String[] @default([])
   createdAt DateTime @default(now()) @map("created_at")
 
   program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
@@ -296,4 +299,19 @@ model CommunityPost {
 
   @@index([creatorProfileId, createdAt])
   @@map("community_posts")
+}
+
+// @MX:NOTE: Bookmark — 팬의 관심 작가 북마크 (PRD §7). @@unique로 중복 북마크 차단.
+model Bookmark {
+  id               String         @id @default(cuid())
+  fanId            String         @map("fan_id")
+  creatorProfileId String         @map("creator_profile_id")
+  createdAt        DateTime       @default(now()) @map("created_at")
+
+  fan            User           @relation(fields: [fanId], references: [id], onDelete: Cascade)
+  creatorProfile CreatorProfile @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
+
+  @@unique([fanId, creatorProfileId])
+  @@index([fanId])
+  @@map("bookmarks")
 }

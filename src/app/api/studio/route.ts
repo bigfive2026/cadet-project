@@ -47,19 +47,19 @@ export async function PATCH(request: Request) {
     );
   }
 
-  // 빈 문자열 → undefined (필드 해제는 별도 UX; 여기서는 갱신에서 제외)
+  // 빈 문자열 → null: URL 필드 해제(clear)를 허용한다. 스키마는 모두 String? 이다.
   const data: Record<string, unknown> = {};
   if (body.studioName !== undefined) data.studioName = body.studioName;
   if (body.bio !== undefined) data.bio = body.bio;
   if (body.category !== undefined) data.category = body.category;
-  if (body.coverImageUrl !== undefined && body.coverImageUrl !== "")
-    data.coverImageUrl = body.coverImageUrl;
-  if (body.profileImageUrl !== undefined && body.profileImageUrl !== "")
-    data.profileImageUrl = body.profileImageUrl;
-  if (body.instagramUrl !== undefined && body.instagramUrl !== "")
-    data.instagramUrl = body.instagramUrl;
-  if (body.websiteUrl !== undefined && body.websiteUrl !== "")
-    data.websiteUrl = body.websiteUrl;
+  if (body.coverImageUrl !== undefined)
+    data.coverImageUrl = body.coverImageUrl === "" ? null : body.coverImageUrl;
+  if (body.profileImageUrl !== undefined)
+    data.profileImageUrl = body.profileImageUrl === "" ? null : body.profileImageUrl;
+  if (body.instagramUrl !== undefined)
+    data.instagramUrl = body.instagramUrl === "" ? null : body.instagramUrl;
+  if (body.websiteUrl !== undefined)
+    data.websiteUrl = body.websiteUrl === "" ? null : body.websiteUrl;
 
   const updated = await prisma.creatorProfile.update({
     where: { id: body.creatorProfileId },

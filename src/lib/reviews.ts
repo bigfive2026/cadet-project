@@ -97,11 +97,13 @@ export async function completeProgram(
           where: { id: payment.id },
           data: { status: "RELEASED" },
         });
-        const settlement = await tx.settlement.update({
+        // @MX:ANCHOR: settlement 실패 시 트랜잭션 롤백 보장 (AC-004)
+        // @MX:REASON: .catch로 에러를 삼키면 Payment=RELEASED/Program=COMPLETED가 커밋된 채 Settlement만 PENDING으로 남는 불일치가 발생한다.
+        await tx.settlement.update({
           where: { paymentId: payment.id },
           data: { status: "RELEASED" },
-        }).catch(() => null);
-        if (settlement) releasedSettlements += 1;
+        });
+        releasedSettlements += 1;
 
         // REVIEW_REQUESTED 알림 — fan당 1회 (FR-002, AC-001)
         if (!notifiedFans.has(payment.fanUserId)) {
@@ -141,7 +143,7 @@ export async function createReview(
   ctx: ReviewServiceContext,
   programId: string,
   input: ReviewInput,
-): Promise<ReviewServiceResult<{ id: string; rating: number; comment: string | null }>> {
+): Promise<ReviewServiceResult<{ id: string; rating: number; comment: string | null; tags: string[] }>> {
   const program = await loadProgram(programId);
   if (!program || program.deletedAt) {
     return { ok: false, status: 404, error: "Program not found" };
@@ -181,8 +183,9 @@ export async function createReview(
         userId: ctx.userId,
         rating: input.rating,
         comment: input.comment,
+        tags: input.tags,
       },
-      select: { id: true, rating: true, comment: true },
+      select: { id: true, rating: true, comment: true, tags: true },
     });
     return { ok: true, data: review };
   } catch (err) {

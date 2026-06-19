@@ -8,6 +8,7 @@ export type ProgramReviewItem = {
   id: string;
   rating: number;
   comment: string | null;
+  tags: string[];
   createdAt: Date;
   user: { id: string; name: string };
 };

@@ -24,6 +24,7 @@ type PostForPurchase = {
   creatorProfileId: string;
   visibility: string;
   priceKrw: number | null;
+  creatorProfile: { userId: string } | null;
 };
 
 /**
@@ -39,11 +40,22 @@ export async function purchasePost(
 ): Promise<PurchaseServiceResult<{ paymentId: string; settlementId: string; amount: number; feeKrw: number }>> {
   const post = (await prisma.post.findUnique({
     where: { id: postId },
-    select: { id: true, creatorProfileId: true, visibility: true, priceKrw: true },
+    select: {
+      id: true,
+      creatorProfileId: true,
+      visibility: true,
+      priceKrw: true,
+      creatorProfile: { select: { userId: true } },
+    },
   })) as PostForPurchase | null;
 
   if (!post) {
     return { ok: false, status: 404, error: "Post not found" };
+  }
+
+  // 작성자 본인 구매 금지 — 작성자는 무료로 열람 가능하므로 결제 레코드가 불필요 (AC-005).
+  if (post.creatorProfile?.userId === ctx.userId) {
+    return { ok: false, status: 400, error: "Cannot purchase your own post" };
   }
 
   // 단건 구매는 PAID 포스트만 대상 (FR-004 전제)

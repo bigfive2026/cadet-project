@@ -79,26 +79,36 @@ export async function applyToProgram(
     return { ok: false, status: 404, error: "Creator profile not found" };
   }
 
-  const application = await prisma.programApplication.create({
-    data: {
-      programId,
-      userId,
-      status: "PENDING",
-      message,
-    },
-  });
+  // 신청 생성 + 크리에이터 알림을 단일 트랜잭션으로 원자화 (AC-001).
+  // 둘 중 하나라도 실패하면 롤백되어 고아(신청만 남고 알림 누락) 상태를 방지한다.
+  try {
+    const application = await prisma.$transaction(async (tx) => {
+      const created = await tx.programApplication.create({
+        data: {
+          programId,
+          userId,
+          status: "PENDING",
+          message,
+        },
+      });
 
-  // 크리에이터에게 알림 생성 (AC-004)
-  await prisma.notification.create({
-    data: {
-      userId: creatorProfile.userId,
-      type: "APPLICATION_CREATED",
-      message: buildNotificationMessage("APPLICATION_CREATED", {}),
-      linkUrl: notificationHref("APPLICATION_CREATED", { programId }),
-    },
-  });
+      // 크리에이터에게 알림 생성 (AC-004)
+      await tx.notification.create({
+        data: {
+          userId: creatorProfile.userId,
+          type: "APPLICATION_CREATED",
+          message: buildNotificationMessage("APPLICATION_CREATED", {}),
+          linkUrl: notificationHref("APPLICATION_CREATED", { programId }),
+        },
+      });
 
-  return { ok: true, data: { id: application.id } };
+      return created;
+    });
+
+    return { ok: true, data: { id: application.id } };
+  } catch {
+    return { ok: false, status: 500, error: "Application creation failed" };
+  }
 }
 
 /**

@@ -19,12 +19,23 @@ export const NOTIFICATION_TYPES = [
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
 
 /**
+ * 크리에이터가 수신하는 알림 타입 (AC-008 접근성 회귀 방지용).
+ * 이 타입들만 크리에이터 대시보드(/dashboard/*)로 연결된다.
+ * 그 외 APPLICATION_ACCEPTED/REJECTED/AUTO_REJECTED, PROGRAM_CLOSED는
+ * 팬에게 전송되므로 팬이 접근 가능한 공개 프로그램 상세로 연결되어야 한다.
+ */
+const CREATOR_AUDIENCE_TYPES: ReadonlySet<NotificationType> = new Set([
+  "APPLICATION_CREATED",
+]);
+
+/**
  * 알림 타입에 따른 링크 URL 생성 (NFR-005).
  *
- * APPLICATION_* 타입과 PROGRAM_CLOSED는 크리에이터 대시보드의
- * 프로그램 신청 목록으로 연결된다.
- * PAYMENT_COMPLETED는 계약 결제(SPEC-006)면 계약 확인 페이지,
- * 단건 포스트 구매(SPEC-009)면 해당 포스트 상세로 연결된다.
+ * 수신자 역할에 따라 링크를 분기한다:
+ * - APPLICATION_CREATED (크리에이터 수신) → 크리에이터 대시보드 신청 목록
+ * - APPLICATION_ACCEPTED/REJECTED/AUTO_REJECTED, PROGRAM_CLOSED (팬 수신) → 공개 프로그램 상세
+ * - PAYMENT_COMPLETED → 계약 결제(SPEC-006)면 계약 확인, 단건 구매(SPEC-009)면 포스트 상세
+ * - REVIEW_REQUESTED (팬 수신) → 프로그램 상세에서 리뷰 작성
  */
 export function notificationHref(
   type: NotificationType,
@@ -40,7 +51,11 @@ export function notificationHref(
     return ctx.programId ? `/programs/${ctx.programId}` : null;
   }
   if (!ctx.programId) return null;
-  return `/dashboard/creator/programs/${ctx.programId}/applications`;
+  if (CREATOR_AUDIENCE_TYPES.has(type)) {
+    return `/dashboard/creator/programs/${ctx.programId}/applications`;
+  }
+  // 팬 수신 알림: proxy(/dashboard/* 보호)를 통과하는 공개 라우트로 연결 (AC-008).
+  return `/programs/${ctx.programId}`;
 }
 
 /**

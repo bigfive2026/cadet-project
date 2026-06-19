@@ -87,6 +87,20 @@ describe("purchasePost (FR-003, FR-004, FR-005, NFR-002, NFR-003)", () => {
     expect(notifArg.data.userId).toBe(FAN_ID);
   });
 
+  it("작성자 본인이 자신의 PAID 포스트를 구매하면 400 (AC-005, 자가 결제 방지)", async () => {
+    // 작성자는 무료로 열람 가능하므로 결제 레코드 생성이 불필요하다.
+    mockPrisma.post.findUnique.mockResolvedValue(
+      postFixture({ creatorProfile: { userId: FAN_ID } }),
+    );
+
+    const result = await purchasePost(FAN_CTX, POST_ID);
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.status).toBe(400);
+    expect(mockPrisma.payment.findFirst).not.toHaveBeenCalled();
+    expect(mockCharge).not.toHaveBeenCalled();
+  });
+
   it("MockPaymentProvider.charge를 postId 컨텍스트로 호출한다 (FR-003, NFR-006, AC-010)", async () => {
     mockPrisma.post.findUnique.mockResolvedValue(postFixture());
     mockPrisma.payment.findFirst.mockResolvedValue(null);

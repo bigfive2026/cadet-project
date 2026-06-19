@@ -69,6 +69,9 @@ async function main() {
   // 두 번째 글은 크리에이터 본인이 작성한 공지 형태.
   await upsertCommunityPostSecond(profile.id, creators[0].id);
 
+  // PRD §13.2: 팬의 관심 작가 북마크 — 교차로 1명씩 북마크해 목록이 비지 않도록 한다.
+  await upsertBookmarks(fans, profiles);
+
   console.log("✓ Seed complete.");
   console.log(`  creators: ${creators.map((c) => c.email).join(", ")}`);
   console.log(`  fans: ${fans.map((f) => f.email).join(", ")}`);
@@ -534,6 +537,7 @@ async function upsertReviews(
       userId: fans[0].id,
       rating: 4,
       comment: "체계적이고 유익했어요.",
+      tags: ["구성이 알차요", "피드백이 유용해요"],
     },
   });
   await prisma.review.upsert({
@@ -545,8 +549,31 @@ async function upsertReviews(
       userId: fans[1].id,
       rating: 5,
       comment: "정말 만족스럽습니다!",
+      tags: ["소통이 좋아요", "다시 참여하고 싶어요"],
     },
   });
+}
+
+// ──────────────────────────── 13. Bookmark ────────────────────────────
+
+// PRD §13.2: 팬의 관심 작가 북마크. 팬 역할은 자기 크리에이터 프로필이 없으므로
+// 자기 북마크 제약(400)에 걸리지 않는다. 교차 북마크로 fan1/fan2 각각 목록이 채워진다.
+async function upsertBookmarks(
+  fans: Array<{ id: string }>,
+  profiles: Array<{ id: string }>,
+) {
+  const pairs: Array<[string, string]> = [];
+  if (fans[0] && profiles[1]) pairs.push([fans[0].id, profiles[1].id]);
+  if (fans[1] && profiles[0]) pairs.push([fans[1].id, profiles[0].id]);
+  await Promise.all(
+    pairs.map(([fanId, creatorProfileId]) =>
+      prisma.bookmark.upsert({
+        where: { fanId_creatorProfileId: { fanId, creatorProfileId } },
+        update: {},
+        create: { fanId, creatorProfileId },
+      }),
+    ),
+  );
 }
 
 main()

@@ -2,6 +2,8 @@
 
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
+import { toggleBookmark } from "@/lib/bookmarks";
+import { revalidatePath } from "next/cache";
 import type { Membership } from "@prisma/client";
 
 /**
@@ -34,4 +36,27 @@ export async function joinMembership(planId: string): Promise<Membership> {
 
 function isPrismaUniqueError(err: unknown): boolean {
   return typeof err === "object" && err !== null && (err as { code?: string }).code === "P2002";
+}
+
+/**
+ * 관심 작가 북마크 토글 Server Action (PRD §13.2).
+ * 인증 필요(미인증 401). 성공 시 스튜디오 페이지를 revalidate한다.
+ * 반환값의 bookmarked로 클라이언트 UI를 즉시 갱신할 수 있다.
+ */
+export async function toggleBookmarkAction(
+  creatorProfileId: string,
+): Promise<{ ok: true; bookmarked: boolean } | { ok: false; error: string }> {
+  const user = await getCurrentUser();
+  if (!user) {
+    return { ok: false, error: "Unauthorized: 로그인이 필요합니다." };
+  }
+
+  const result = await toggleBookmark(user.id, creatorProfileId);
+  if (!result.ok) {
+    return { ok: false, error: result.error };
+  }
+
+  revalidatePath(`/creators/${creatorProfileId}`);
+  revalidatePath("/dashboard/fan/bookmarks");
+  return { ok: true, bookmarked: result.data.bookmarked };
 }

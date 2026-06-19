@@ -34,7 +34,8 @@ export async function Header() {
       : [
           { href: "/creators", label: "둘러보기" },
           { href: "/programs", label: "프로그램" },
-          { href: "/dashboard/fan", label: "내 페이지" },
+          { href: "/dashboard/fan/bookmarks", label: "관심 작가" },
+          { href: "/dashboard/fan/memberships", label: "내 멤버십" },
         ];
 
   return (

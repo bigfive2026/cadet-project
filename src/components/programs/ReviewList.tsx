@@ -38,6 +38,18 @@ export function ReviewList({
                   {review.comment}
                 </p>
               ) : null}
+              {review.tags.length > 0 ? (
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {review.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
             </li>
           ))}
         </ul>
