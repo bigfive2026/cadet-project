@@ -63,7 +63,20 @@ describe("notification-types (NFR-005)", () => {
       expect(result).toBe("/contracts/contract-1");
     });
 
-    it("PAYMENT_COMPLETED는 contractId가 없으면 null", () => {
+    it("PAYMENT_COMPLETED는 postId가 있으면 포스트 상세로 연결 (SPEC-009)", () => {
+      const result = notificationHref("PAYMENT_COMPLETED", { postId: "post-3" });
+      expect(result).toBe("/posts/post-3");
+    });
+
+    it("PAYMENT_COMPLETED는 postId가 contractId보다 우선한다 (SPEC-009)", () => {
+      const result = notificationHref("PAYMENT_COMPLETED", {
+        postId: "post-3",
+        contractId: "contract-1",
+      });
+      expect(result).toBe("/posts/post-3");
+    });
+
+    it("PAYMENT_COMPLETED는 contractId/postId가 없으면 null", () => {
       expect(notificationHref("PAYMENT_COMPLETED", {})).toBeNull();
     });
 

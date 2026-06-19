@@ -50,6 +50,10 @@ async function main() {
   const payments = await upsertPayments(membership.id, contract.id, fans[0].id);
   await upsertSettlements(payments);
 
+  // SPEC-009 NFR-007: PAID 포스트 단건 구매 시연 — fans[1]은 demo-post-3을 구매 완료,
+  // fans[0]은 미구매 상태로 두어 잠금/열림 두 화면을 바로 시연한다.
+  await upsertPostPurchase("demo-post-3", fans[1].id);
+
   // SPEC-006 NFR-006: 수락→서명→결제 흐름을 즉시 시연할 수 있도록
   // 미서명·미결제 상태의 ACCEPTED 계약을 1건 추가한다 (fans[1] 기준).
   await upsertPendingContract(programs[0].id, fans[1].id);
@@ -383,6 +387,23 @@ async function upsertSettlements(payments: Array<{ id: string; amount: number; f
       }),
     ),
   );
+}
+
+// ──────────────── SPEC-009: PAID 포스트 단건 구매 (Payment + Settlement) ────────────────
+
+async function upsertPostPurchase(postId: string, fanUserId: string) {
+  const amount = 5000; // demo-post-3 priceKrw (upsertPosts와 일치)
+  const feeKrw = Math.round(amount * FEE_RATE);
+  const payment = await prisma.payment.upsert({
+    where: { id: "demo-post-payment-1" },
+    update: {},
+    create: { id: "demo-post-payment-1", postId, fanUserId, amount, feeKrw, status: PaymentStatus.PAID },
+  });
+  await prisma.settlement.upsert({
+    where: { paymentId: payment.id },
+    update: {},
+    create: { paymentId: payment.id, payout: amount - feeKrw, status: SettlementStatus.PENDING },
+  });
 }
 
 // ──────────────────────────── 11. Notification ────────────────────────────

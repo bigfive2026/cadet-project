@@ -23,13 +23,16 @@ export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
  *
  * APPLICATION_* 타입과 PROGRAM_CLOSED는 크리에이터 대시보드의
  * 프로그램 신청 목록으로 연결된다.
- * PAYMENT_COMPLETED(SPEC-006)는 해당 계약 확인 페이지로 연결된다.
+ * PAYMENT_COMPLETED는 계약 결제(SPEC-006)면 계약 확인 페이지,
+ * 단건 포스트 구매(SPEC-009)면 해당 포스트 상세로 연결된다.
  */
 export function notificationHref(
   type: NotificationType,
-  ctx: { programId?: string; applicationId?: string; contractId?: string },
+  ctx: { programId?: string; applicationId?: string; contractId?: string; postId?: string },
 ): string | null {
   if (type === "PAYMENT_COMPLETED") {
+    // SPEC-009: 단건 포스트 구매는 포스트 상세로 연결한다.
+    if (ctx.postId) return `/posts/${ctx.postId}`;
     return ctx.contractId ? `/contracts/${ctx.contractId}` : null;
   }
   if (type === "REVIEW_REQUESTED") {

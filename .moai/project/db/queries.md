@@ -144,3 +144,69 @@ ORDER BY month DESC;
 
 > **Mock 결제 주의**: 실제 송금은 없고 상태머신 시뮬레이션이므로 리포트 수치는 데모용.
 > `tech.md` §7 방어 의사결정 참조.
+
+### 크리에이터 평점 집계 (SPEC-008 FR-012, AC-011, AC-012)
+
+```sql
+-- Purpose: 크리에이터의 모든 프로그램 리뷰 평균 평점 + 개수
+-- Used by: CreatorRatingSummary (/creators/[creatorId] 소개 탭)
+-- Estimated runtime: < 1s (program_id 인덱스 + creator_profile_id 인덱스)
+
+SELECT
+  ROUND(AVG(r.rating)::numeric, 1) AS avg_rating,
+  COUNT(*) AS review_count
+FROM reviews r
+JOIN programs prog ON prog.id = r.program_id
+WHERE prog.creator_profile_id = $1;
+-- 리뷰 0건이면 avg_rating = NULL → "리뷰 없음" 표시 (AC-012).
+-- 1인 1회는 @@unique(program_id, user_id)로 DB 강제 (NFR-003).
+```
+
+> 구현체는 Prisma `review.aggregate({ where: { program: { creatorProfileId } } })`
+> (`lib/queries/reviews.ts::getCreatorRating`). 반올림은 JS에서 재적용.
+
+### PAID 포스트 구매 여부 확인 (SPEC-009 FR-007/AC-003/AC-006)
+
+```sql
+-- Purpose: 팬이 특정 PAID 포스트를 구매했는지 확인 (hasPurchasedPost)
+-- Parameters: $1 = post_id, $2 = fan_user_id
+-- Returns: 레코드 존재 여부 (true = 열람 허용)
+
+SELECT id
+FROM payments
+WHERE post_id = $1
+  AND fan_user_id = $2
+  AND status IN ('PAID', 'RELEASED')
+LIMIT 1;
+```
+
+```ts
+// Prisma (lib/post-access.ts::hasPurchasedPost)
+const existing = await prisma.payment.findFirst({
+  where: { postId, fanUserId: userId, status: { in: ['PAID', 'RELEASED'] } },
+});
+return existing !== null;
+```
+
+> `payments_post_id_fan_user_id_status_idx` 복합 인덱스가 이 쿼리를 커버한다(SPEC-009 안 A).
+> `PENDING`·`FAILED` 상태는 열람 허용 안 함(FR-008/AC-006).
+
+### PAID 포스트 단건 구매 트랜잭션 (SPEC-009 FR-003/NFR-002)
+
+```ts
+// Prisma (lib/post-purchase.ts::purchasePost)
+// 중복 구매 사전 체크 후 단일 $transaction으로 원자 처리
+const [payment, _settlement, _notification] = await prisma.$transaction([
+  prisma.payment.create({
+    data: { postId, fanUserId, amount, feeKrw: Math.round(amount * 0.1), status: 'PAID' },
+  }),
+  prisma.settlement.create({
+    data: { paymentId: '<payment.id>', payout: amount - feeKrw, status: 'PENDING' },
+  }),
+  prisma.notification.create({
+    data: { userId: fanUserId, type: 'PAYMENT_COMPLETED', message: '...', linkUrl: `/posts/${postId}` },
+  }),
+]);
+```
+
+> 트랜잭션 실패(Settlement 생성 오류 등) 시 전체 롤백 — Payment만 남는 상황 없음(NFR-002/AC-011).

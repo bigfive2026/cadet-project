@@ -1,18 +1,21 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-// --- Prisma mock (isActiveMember 내부 prisma 호출 대체) ---
-const mockFindFirst = vi.fn();
+// --- Prisma mock (isActiveMember / hasPurchasedPost 내부 prisma 호출 대체) ---
+const mockFindFirst = vi.fn(); // membership.findFirst
+const mockPaymentFindFirst = vi.fn(); // payment.findFirst
 vi.mock("@/lib/prisma", () => ({
   prisma: {
     membership: { findFirst: (...args: unknown[]) => mockFindFirst(...args) },
+    payment: { findFirst: (...args: unknown[]) => mockPaymentFindFirst(...args) },
   },
 }));
 
-import { canViewPost } from "@/lib/post-access";
+import { canViewPost, hasPurchasedPost } from "@/lib/post-access";
 import type { AppUser } from "@/lib/types";
 
 beforeEach(() => {
   mockFindFirst.mockReset();
+  mockPaymentFindFirst.mockReset();
 });
 
 // 테스트용 공통 픽스처
@@ -77,15 +80,48 @@ describe("canViewPost (FR-008, AC-001/004/005)", () => {
     });
   });
 
-  describe("PAID 포스트", () => {
-    it("비멤버 팬은 PAID 포스트를 볼 수 없다 (MVP: 구매 기록 없음)", async () => {
+  describe("PAID 포스트 (SPEC-009 FR-006)", () => {
+    it("구매 이력이 없는 팬은 PAID 포스트를 볼 수 없다 (AC-001)", async () => {
+      mockPaymentFindFirst.mockResolvedValue(null);
       const result = await canViewPost(fanUser, paidPost);
       expect(result).toBe(false);
     });
 
-    it("비로그인 사용자는 PAID 포스트를 볼 수 없다", async () => {
-      const result = await canViewPost(null, paidPost);
+    it("구매한 팬(PAID 결제 존재)은 PAID 포스트를 볼 수 있다 (AC-003)", async () => {
+      mockPaymentFindFirst.mockResolvedValue({ id: "pay-1", status: "PAID" });
+      const result = await canViewPost(fanUser, paidPost);
+      expect(result).toBe(true);
+    });
+
+    it("PENDING 결제만 있는 팬은 PAID 포스트를 볼 수 없다 (FR-008, AC-006)", async () => {
+      // hasPurchasedPost는 status IN (PAID, RELEASED)만 조회하므로 PENDING은 null로 취급된다.
+      mockPaymentFindFirst.mockResolvedValue(null);
+      const result = await canViewPost(fanUser, paidPost);
       expect(result).toBe(false);
     });
+
+    it("비로그인 사용자는 PAID 포스트를 볼 수 없다 (AC-001)", async () => {
+      const result = await canViewPost(null, paidPost);
+      expect(result).toBe(false);
+      expect(mockPaymentFindFirst).not.toHaveBeenCalled();
+    });
+  });
+});
+
+describe("hasPurchasedPost (FR-007)", () => {
+  it("status IN (PAID, RELEASED)인 Payment가 있으면 true (AC-003)", async () => {
+    mockPaymentFindFirst.mockResolvedValue({ id: "pay-1", status: "PAID" });
+    const result = await hasPurchasedPost("u-fan", "post-3");
+    expect(result).toBe(true);
+    const where = mockPaymentFindFirst.mock.calls[0][0].where;
+    expect(where.postId).toBe("post-3");
+    expect(where.fanUserId).toBe("u-fan");
+    expect(where.status).toEqual({ in: ["PAID", "RELEASED"] });
+  });
+
+  it("매칭 Payment가 없으면 false (AC-001)", async () => {
+    mockPaymentFindFirst.mockResolvedValue(null);
+    const result = await hasPurchasedPost("u-fan", "post-3");
+    expect(result).toBe(false);
   });
 });

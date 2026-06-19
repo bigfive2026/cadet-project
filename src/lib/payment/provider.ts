@@ -7,7 +7,10 @@
  */
 
 export interface ChargeInput {
-  contractId: string;
+  /** 계약 결제(SPEC-006) 컨텍스트. 단건 포스트 결제 시 생략. */
+  contractId?: string;
+  /** 단건 PAID 포스트 결제(SPEC-009 NFR-006) 컨텍스트. 계약 결제 시 생략. */
+  postId?: string;
   amount: number;
 }
 
@@ -39,7 +42,7 @@ export class MockPaymentProvider implements PaymentProvider {
     return {
       success: true,
       provider: this.name,
-      providerTxId: `mock_${input.contractId}_${Date.now()}_${this.sequence}`,
+      providerTxId: `mock_${input.contractId ?? input.postId ?? "txn"}_${Date.now()}_${this.sequence}`,
       amount: input.amount,
     };
   }

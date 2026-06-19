@@ -6,6 +6,19 @@
 
 ## [Unreleased]
 
+### Added — SPEC-009: PAID 포스트 단건 구매 (Mock 결제)
+
+- 스키마 보완 — `Payment` 모델에 `postId String? @map("post_id")` 필드 + `post Post? @relation(... onDelete: SetNull)` 역관계 추가(안 A). `Post` 모델에 역관계 `payments Payment[]` 추가. 조회용 복합 인덱스 `@@index([postId, fanUserId, status])` 추가. `(membershipId, contractId, postId)` 중 정확히 하나만 not null인 제약은 앱 레이어 강제(FR-003).
+- 마이그레이션 `20260619160000_spec009_post_purchase` — `payments` 테이블에 `post_id TEXT` 컬럼 추가 + `payments_post_id_fan_user_id_status_idx` 인덱스 생성 + `posts` 테이블 FK(`ON DELETE SET NULL`) 추가. 기존 데이터 비파괴, 추가형.
+- 구매 API `POST /api/posts/:id/purchase` — 팬 로그인 필수(미로그인 401, FR-009/AC-009). `MockPaymentProvider.charge()` 호출 후 단일 `$transaction`으로 `Payment(postId, fanUserId, amount=priceKrw, feeKrw=Math.round(amount*0.1), status=PAID)` + `Settlement(payout=amount-feeKrw, status=PENDING)` + 팬에게 `PAYMENT_COMPLETED` 알림(`linkUrl=/posts/:id`) 원자 처리(FR-003/AC-002/NFR-002).
+- 중복 구매 방지 — `(postId, fanUserId)` 기준 `status IN (PAID, RELEASED)` 레코드 존재 시 409 반환(FR-005/AC-004).
+- 입력 검증 — `priceKrw`가 null 또는 0 이하이면 400(FR-004/AC-008). 검증 스키마: `src/lib/validation/post-purchase.ts`.
+- 접근 제어 확장 — `canViewPost`의 PAID 분기 확장(`lib/post-access.ts`): 작성자 본인은 무조건 `true`(FR-002/AC-005), 그 외 `hasPurchasedPost(userId, postId)`(`status IN PAID, RELEASED` 존재 여부) 결과 반환(FR-006/FR-007/AC-003/AC-006). `PENDING`·`FAILED`는 잠금 유지(FR-008).
+- 잠금 UI — 비구매자/미로그인 사용자에게 `LockedPostPreview`(가격 표시 + "구매하기" CTA) 노출, 응답에 `body` 미포함(FR-001/AC-001). 구매 버튼: `PurchaseButton` 컴포넌트(`src/components/posts/PurchaseButton.tsx`).
+- 신규 파일 — `src/lib/post-purchase.ts`(`purchasePost`/`hasPurchasedPost`), `src/lib/post-purchase.test.ts`, `src/lib/validation/post-purchase.ts`, `src/app/api/posts/[id]/purchase/route.ts`(+`route.test.ts`), `src/components/posts/PurchaseButton.tsx`.
+- 변경 파일 — `src/lib/post-access.ts`(PAID 분기 확장), `src/components/posts/LockedPostPreview.tsx`(구매 CTA 연결), `src/app/(app)/posts/[id]/page.tsx`(구매 상태 전달), `src/lib/notification-types.ts`(`PAYMENT_COMPLETED` postId 컨텍스트 분기), `src/lib/payment/provider.ts`(`PaymentInput.postId` 추가), `prisma/schema.prisma`, `prisma/seed.ts`.
+- 시드 — `demo-post-3`(`visibility=PAID`, `priceKrw=5000`) 기존 유지. `fans[1]`이 `demo-post-3`을 `Payment(status=PAID, feeKrw=500)` + `Settlement(payout=4500, status=PENDING)`으로 구매 완료(`upsertPostPurchase`). `fans[0]`은 미구매로 잠금 화면, `fans[1]`은 열린 화면 즉시 시연(NFR-007/AC-007).
+
 ### Added — SPEC-008: 프로그램 완료 처리 및 리뷰
 
 - 완료 승인(정산 릴리스) — 크리에이터 본인이 `IN_PROGRESS` 프로그램에서 `POST /api/programs/:id/complete` 호출 시 단일 `$transaction`으로 `Program.status=COMPLETED` + 해당 `ACCEPTED`/결제완료(`PAID`) 신청자의 `Payment.status=RELEASED` + 대응 `Settlement.status=RELEASED` 전환 + 각 팬에게 `REVIEW_REQUESTED` 알림을 원자 처리(FR-001/AC-001, NFR-001/AC-004 롤백 보장).

@@ -145,6 +145,7 @@ model Post {
   updatedAt         DateTime       @updatedAt @map("updated_at")
 
   creatorProfile CreatorProfile @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
+  payments       Payment[]
 
   @@index([creatorProfileId, createdAt])
   @@map("posts")
@@ -214,6 +215,10 @@ model Payment {
   // SPEC-006 FR-008: 1계약 1결제 — DB 레벨 중복 결제 차단. nullable이므로
   // 멤버십 결제(contractId=null)는 Postgres가 다중 NULL을 허용해 영향 없음.
   contractId    String?       @unique @map("contract_id")
+  // SPEC-009 안 A: PAID 포스트 단건 구매 슬롯. membershipId/contractId와 동일한
+  // nullable 선택적 패턴. (membershipId, contractId, postId) 중 정확히 하나만 not null
+  // (앱 레이어 제약 — FR-003). 중복 구매 방지는 애플리케이션 레벨 PAID 상태 체크(FR-005).
+  postId        String?       @map("post_id")
   fanUserId     String        @map("fan_user_id")
   amount        Int
   feeKrw        Int           @default(0) @map("fee_krw")
@@ -223,10 +228,12 @@ model Payment {
 
   membership Membership? @relation(fields: [membershipId], references: [id], onDelete: SetNull)
   contract   Contract?   @relation(fields: [contractId], references: [id], onDelete: SetNull)
+  post       Post?       @relation(fields: [postId], references: [id], onDelete: SetNull)
   fan        User        @relation("PaymentFan", fields: [fanUserId], references: [id], onDelete: Cascade)
   settlement Settlement?
 
   @@index([status, createdAt])
+  @@index([postId, fanUserId, status])
   @@map("payments")
 }
 
