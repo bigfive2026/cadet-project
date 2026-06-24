@@ -1,10 +1,15 @@
 import Link from "next/link";
+import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
 
 export const metadata = { title: "이용약관 - ArtBridge" };
 
 export default function TermsPage() {
   return (
-    <main className="mx-auto max-w-2xl px-4 py-12 space-y-8">
+    <div className="flex min-h-screen flex-col bg-background">
+      <Header />
+      <div className="mx-auto w-full max-w-5xl flex-1 px-4 py-6">
+        <main className="mx-auto max-w-2xl space-y-8">
       <div>
         <h1 className="text-3xl font-bold">이용약관</h1>
         <p className="mt-2 text-sm text-muted-foreground">최종 수정일: 2025년 1월 1일 (데모용)</p>
@@ -51,7 +56,10 @@ export default function TermsPage() {
         <Link href="/" className="underline underline-offset-2 text-muted-foreground">
           홈으로
         </Link>
+        </div>
+        </main>
       </div>
-    </main>
+      <Footer />
+    </div>
   );
 }

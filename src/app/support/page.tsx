@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
 
 export const metadata = { title: "고객센터 - ArtBridge" };
 
@@ -31,7 +33,10 @@ const faqs = [
 
 export default function SupportPage() {
   return (
-    <main className="mx-auto max-w-2xl px-4 py-12 space-y-10">
+    <div className="flex min-h-screen flex-col bg-background">
+      <Header />
+      <div className="mx-auto w-full max-w-5xl flex-1 px-4 py-6">
+        <main className="mx-auto max-w-2xl space-y-10">
       <div>
         <h1 className="text-3xl font-bold">고객센터</h1>
         <p className="mt-2 text-muted-foreground">
@@ -74,6 +79,9 @@ export default function SupportPage() {
           홈으로 돌아가기
         </Link>
       </div>
-    </main>
+        </main>
+      </div>
+      <Footer />
+    </div>
   );
 }
