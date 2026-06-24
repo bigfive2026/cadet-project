@@ -1,5 +1,8 @@
 import Link from "next/link";
+import { Badge } from "@/components/ui/badge";
 import { requireRole } from "@/lib/auth";
+import { getCreatorStudio } from "@/lib/queries/studio";
+import { cn } from "@/lib/utils";
 
 /**
  * 크리에이터 대시보드 요약 (SPEC-002 AC-004).
@@ -8,6 +11,11 @@ import { requireRole } from "@/lib/auth";
 export default async function CreatorDashboardPage() {
   const user = await requireRole("CREATOR");
   const profile = user.creatorProfile;
+  const studio = profile ? await getCreatorStudio(profile.id) : null;
+  const activeMemberCount =
+    studio?.plans.reduce((total, plan) => total + plan.memberships.length, 0) ?? 0;
+  const publishedPostCount = studio?.posts.length ?? 0;
+  const publicProgramCount = studio?.programs.length ?? 0;
 
   return (
     <div className="space-y-6">
@@ -17,44 +25,48 @@ export default async function CreatorDashboardPage() {
       </header>
 
       {profile ? (
-        <section className="space-y-2 rounded-xl border p-4">
-          <h2 className="font-heading text-lg font-semibold">{profile.studioName}</h2>
-          {profile.bio ? (
-            <p className="text-sm text-muted-foreground">{profile.bio}</p>
-          ) : null}
-          <dl className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
-            {profile.category ? (
-              <>
-                <dt>카테고리</dt>
-                <dd>{profile.category}</dd>
-              </>
-            ) : null}
-            {profile.instagramUrl ? (
-              <>
-                <dt>Instagram</dt>
-                <dd className="truncate">{profile.instagramUrl}</dd>
-              </>
-            ) : null}
-            {profile.websiteUrl ? (
-              <>
-                <dt>Website</dt>
-                <dd className="truncate">{profile.websiteUrl}</dd>
-              </>
-            ) : null}
-          </dl>
-          <div>
+        <section className="space-y-4 rounded-[var(--radius-card)] border border-border-default bg-white px-7 py-6 shadow-card">
+          <div className="flex items-center gap-4">
+            <div className="flex size-14 shrink-0 items-center justify-center rounded-full bg-brand-subtle text-xl font-bold text-brand-primary">
+              {profile.studioName.slice(0, 1).toUpperCase()}
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <h2 className="truncate font-heading text-2xl font-bold text-text-default">
+                  {profile.studioName}
+                </h2>
+                <Badge variant="membership">크리에이터</Badge>
+              </div>
+            </div>
             <Link
               href="/dashboard/creator/edit"
-              className="text-sm font-medium text-primary underline-offset-4 hover:underline"
+              aria-label="스튜디오 편집"
+              className="shrink-0 rounded-[var(--radius-control)] border border-border-default bg-white px-3.5 py-2 text-sm text-text-default transition-colors hover:border-brand-primary hover:text-brand-primary"
             >
-              스튜디오 편집
+              편집
             </Link>
+          </div>
+
+          <p className="text-sm leading-[22px] text-text-default">
+            {profile.bio ?? "아직 스튜디오 소개가 없습니다."}
+          </p>
+
+          <dl className="grid overflow-hidden rounded-[12px] border border-border-default bg-white sm:grid-cols-3">
+            <CreatorStat label="멤버" value={activeMemberCount} />
+            <CreatorStat label="포스트" value={publishedPostCount} bordered />
+            <CreatorStat label="프로그램" value={publicProgramCount} bordered />
+          </dl>
+
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-text-default">
+            {profile.category ? <MetaItem label="카테고리" value={profile.category} /> : null}
+            {profile.instagramUrl ? <MetaItem label="Instagram" value={profile.instagramUrl} /> : null}
+            {profile.websiteUrl ? <MetaItem label="Website" value={profile.websiteUrl} /> : null}
           </div>
         </section>
       ) : (
         // H3: 프로필 미보유 크리에이터 첫 화면 가이드.
         // 스튜디오 섹션이 통째로 사라져 길을 잃지 않도록 시작 액션을 안내한다.
-        <section className="space-y-2 rounded-xl border border-dashed p-4">
+        <section className="space-y-2 rounded-[var(--radius-card)] border border-dashed border-border-default bg-white p-4">
           <h2 className="font-heading text-lg font-semibold">
             스튜디오를 시작해 볼까요?
           </h2>
@@ -112,5 +124,38 @@ export default async function CreatorDashboardPage() {
         ) : null}
       </section>
     </div>
+  );
+}
+
+function CreatorStat({
+  label,
+  value,
+  bordered = false,
+}: {
+  label: string;
+  value: number;
+  bordered?: boolean;
+}) {
+  return (
+    <div
+      className={cn(
+        "flex flex-col items-center justify-center gap-0.5 px-5 py-4 text-center",
+        bordered && "border-t border-border-default sm:border-l sm:border-t-0",
+      )}
+    >
+      <dt className="order-2 text-sm text-text-muted">{label}</dt>
+      <dd className="order-1 text-xl font-bold leading-7 text-text-default">
+        {value.toLocaleString("ko-KR")}
+      </dd>
+    </div>
+  );
+}
+
+function MetaItem({ label, value }: { label: string; value: string }) {
+  return (
+    <span className="inline-flex min-w-0 items-center gap-1.5">
+      <span className="shrink-0 text-text-muted">{label}</span>
+      <span className="truncate">{value}</span>
+    </span>
   );
 }
