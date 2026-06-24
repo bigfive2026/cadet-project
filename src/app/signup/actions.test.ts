@@ -51,7 +51,7 @@ beforeEach(() => {
 afterEach(() => vi.clearAllMocks());
 
 describe("register (SPEC-AUTH)", () => {
-  it("creates a CREATOR and redirects to /dashboard/creator", async () => {
+  it("creates a CREATOR and redirects to /", async () => {
     mockFindUnique.mockResolvedValue(null);
     mockCreate.mockResolvedValue({ id: "u-new" });
     await expect(
@@ -59,7 +59,7 @@ describe("register (SPEC-AUTH)", () => {
         undefined,
         formData({ name: "새 작가", email: "new@artbridge.demo", password: "password123", role: "CREATOR" }),
       ),
-    ).rejects.toThrow("REDIRECT:/dashboard/creator");
+    ).rejects.toThrow("REDIRECT:/");
     expect(mockCreate).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
@@ -72,7 +72,7 @@ describe("register (SPEC-AUTH)", () => {
     expect(mockSignIn).toHaveBeenCalledWith("credentials", expect.objectContaining({ email: "new@artbridge.demo" }));
   });
 
-  it("creates a FAN and redirects to /creators", async () => {
+  it("creates a FAN and redirects to /", async () => {
     mockFindUnique.mockResolvedValue(null);
     mockCreate.mockResolvedValue({ id: "u-fan" });
     await expect(
@@ -80,7 +80,7 @@ describe("register (SPEC-AUTH)", () => {
         undefined,
         formData({ name: "새 팬", email: "fan@artbridge.demo", password: "password123", role: "FAN" }),
       ),
-    ).rejects.toThrow("REDIRECT:/creators");
+    ).rejects.toThrow("REDIRECT:/");
   });
 
   it("returns a field error when the email is already taken", async () => {

@@ -70,5 +70,5 @@ export async function register(
     throw err;
   }
 
-  redirect(role === "CREATOR" ? "/dashboard/creator" : "/creators");
+  redirect("/");
 }

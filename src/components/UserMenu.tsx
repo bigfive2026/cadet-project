@@ -8,9 +8,10 @@ import { Badge } from "@/components/ui/badge";
 interface UserMenuProps {
   name: string;
   role: "CREATOR" | "FAN";
+  creatorProfileId?: string;
 }
 
-export function UserMenu({ name, role }: UserMenuProps) {
+export function UserMenu({ name, role, creatorProfileId }: UserMenuProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -23,7 +24,11 @@ export function UserMenu({ name, role }: UserMenuProps) {
   }, []);
 
   const profileHref =
-    role === "CREATOR" ? "/dashboard/creator/edit" : "/dashboard/fan/profile";
+    role === "CREATOR"
+      ? creatorProfileId
+        ? `/creators/${creatorProfileId}`
+        : "/dashboard/creator/edit"
+      : "/dashboard/fan/profile";
   const roleLabel = role === "CREATOR" ? "크리에이터" : "팬";
   const roleVariant = role === "CREATOR" ? "primary" : "secondary";
 

@@ -2,13 +2,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AuthError } from "next-auth";
 
 // vi.hoisted ensures mocks exist before vi.mock factories run (hoisting).
-const { mockRedirect, mockSignIn, mockSignOut, mockGetCurrentUser } = vi.hoisted(() => ({
+const { mockRedirect, mockSignIn, mockSignOut } = vi.hoisted(() => ({
   mockRedirect: vi.fn((path: string) => {
     throw new Error(`REDIRECT:${path}`);
   }),
   mockSignIn: vi.fn(),
   mockSignOut: vi.fn(),
-  mockGetCurrentUser: vi.fn(),
 }));
 
 vi.mock("next/navigation", () => ({ redirect: mockRedirect }));
@@ -20,10 +19,6 @@ vi.mock("@/auth", () => ({
   signIn: (...args: unknown[]) => mockSignIn(...args),
   signOut: (...args: unknown[]) => mockSignOut(...args),
 }));
-vi.mock("@/lib/auth", () => ({
-  getCurrentUser: (...args: unknown[]) => mockGetCurrentUser(...args),
-}));
-
 import { loginWithCredentials, logout } from "@/app/login/actions";
 
 function formData(obj: Record<string, string>): FormData {
@@ -36,28 +31,25 @@ beforeEach(() => {
   mockRedirect.mockClear();
   mockSignIn.mockReset();
   mockSignOut.mockReset();
-  mockGetCurrentUser.mockReset();
 });
 
 afterEach(() => vi.clearAllMocks());
 
 describe("loginWithCredentials (SPEC-AUTH)", () => {
-  it("redirects to /dashboard/creator on successful creator login", async () => {
+  it("redirects to / on successful creator login", async () => {
     mockSignIn.mockResolvedValue(undefined);
-    mockGetCurrentUser.mockResolvedValue({ role: "CREATOR" });
     await expect(
       loginWithCredentials(undefined, formData({ email: "creator@artbridge.demo", password: "demo1234!" })),
-    ).rejects.toThrow("REDIRECT:/dashboard/creator");
+    ).rejects.toThrow("REDIRECT:/");
     expect(mockSignIn).toHaveBeenCalledWith("credentials", expect.objectContaining({ email: "creator@artbridge.demo" }));
-    expect(mockRedirect).toHaveBeenCalledWith("/dashboard/creator");
+    expect(mockRedirect).toHaveBeenCalledWith("/");
   });
 
-  it("redirects to /creators on successful fan login", async () => {
+  it("redirects to / on successful fan login", async () => {
     mockSignIn.mockResolvedValue(undefined);
-    mockGetCurrentUser.mockResolvedValue({ role: "FAN" });
     await expect(
       loginWithCredentials(undefined, formData({ email: "fan1@artbridge.demo", password: "demo1234!" })),
-    ).rejects.toThrow("REDIRECT:/creators");
+    ).rejects.toThrow("REDIRECT:/");
   });
 
   it("returns inline error on invalid credentials (no redirect)", async () => {
@@ -67,13 +59,11 @@ describe("loginWithCredentials (SPEC-AUTH)", () => {
       formData({ email: "x@y.z", password: "wrong" }),
     );
     expect(result).toEqual({ error: expect.any(String) });
-    expect(mockGetCurrentUser).not.toHaveBeenCalled();
     expect(mockRedirect).not.toHaveBeenCalled();
   });
 
   it("honors callbackUrl over role home", async () => {
     mockSignIn.mockResolvedValue(undefined);
-    mockGetCurrentUser.mockResolvedValue({ role: "FAN" });
     await expect(
       loginWithCredentials(
         undefined,
