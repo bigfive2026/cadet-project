@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Search } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth";
 import { NotificationBell } from "@/components/notification/NotificationBell";
 import { UserMenu } from "@/components/UserMenu";
@@ -76,19 +77,26 @@ export async function Header() {
   const navLinks =
     user.role === "CREATOR"
       ? [
-          { href: "/dashboard/creator", label: "홈" },
-          { href: "/dashboard/creator/edit", label: "스튜디오" },
+          { href: "/", label: "홈" },
+          {
+            href: user.creatorProfile?.id
+              ? `/creators/${user.creatorProfile.id}`
+              : "/dashboard/creator/edit",
+            label: "내 프로필",
+          },
+          { href: "/dashboard/creator", label: "관리 홈" },
           { href: "/dashboard/creator/artworks", label: "작품·작업" },
           { href: "/dashboard/creator/programs", label: "프로그램" },
           { href: "/dashboard/creator/artwork-orders", label: "주문·배송" },
           { href: "/dashboard/creator/settlements", label: "정산" },
         ]
       : [
-          { href: "/creators", label: "작가 찾기" },
-          { href: "/creators?tab=artworks", label: "작품 구매" },
+          { href: "/dashboard/fan", label: "내 홈" },
+          { href: "/creators", label: "둘러보기" },
           { href: "/programs", label: "프로그램" },
           { href: "/dashboard/fan/bookmarks", label: "관심 작가" },
-          { href: "/dashboard/fan", label: "마이페이지" },
+          { href: "/dashboard/fan/memberships", label: "내 멤버십" },
+          { href: "/dashboard/fan/payments", label: "내 신청·결제" },
         ];
 
   return (
@@ -116,8 +124,15 @@ export async function Header() {
         </div>
 
         <div className="flex items-center gap-2">
+          <Link
+            href="/creators"
+            aria-label="검색"
+            className="flex size-9 items-center justify-center rounded-full text-text-muted transition-colors hover:bg-brand-subtle hover:text-brand-primary"
+          >
+            <Search className="size-5" />
+          </Link>
           <NotificationBell />
-          <UserMenu name={user.name} role={user.role} />
+          <UserMenu name={user.name} role={user.role} creatorProfileId={user.creatorProfile?.id} />
         </div>
       </div>
 
