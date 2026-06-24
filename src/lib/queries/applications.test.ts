@@ -136,7 +136,7 @@ describe("queries/applications (FR-002, AC-002)", () => {
               reviews: { where: { userId: "u-fan" }, select: { id: true }, take: 1 },
             },
           },
-          payment: { select: { status: true } },
+          payment: { select: { status: true, createdAt: true, updatedAt: true } },
         },
       });
       expect(result).toEqual(mockApps);

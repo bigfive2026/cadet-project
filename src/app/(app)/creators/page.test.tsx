@@ -34,6 +34,29 @@ describe("/creators list page (AC-001)", () => {
     expect(links.length).toBeGreaterThanOrEqual(2);
   });
 
+  it("작가가 많으면 첫 화면은 6명만 보여주고 더 보기 링크를 제공한다", async () => {
+    mockListCreators.mockResolvedValue(
+      Array.from({ length: 8 }, (_, index) => ({
+        id: `p-${index + 1}`,
+        studioName: `스튜디오 ${index + 1}`,
+        bio: null,
+        profileImageUrl: null,
+        category: index % 2 === 0 ? "회화" : "도자",
+      })),
+    );
+
+    const ui = await CreatorsPage({});
+    render(ui);
+
+    expect(screen.getByText("스튜디오 1")).toBeTruthy();
+    expect(screen.getByText("스튜디오 6")).toBeTruthy();
+    expect(screen.queryByText("스튜디오 7")).toBeNull();
+    expect(screen.getByRole("link", { name: "2명 더 보기" })).toHaveAttribute(
+      "href",
+      "/creators?limit=8",
+    );
+  });
+
   it("tab=artworks 진입 시 작품 구매 목록 제목과 작품 탭 링크를 렌더링한다", async () => {
     mockListCreators.mockResolvedValue([
       { id: "p-1", studioName: "스튜디오 1", bio: null, profileImageUrl: null, category: null },

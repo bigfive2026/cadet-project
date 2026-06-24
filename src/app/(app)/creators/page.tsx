@@ -1,11 +1,15 @@
 import { Search } from "lucide-react";
+import Link from "next/link";
 import { listCreators } from "@/lib/queries/studio";
 import { CreatorCard } from "@/components/creators/CreatorCard";
 import { SectionHeader } from "@/components/home/SectionHeader";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-type CreatorsSearchParams = { q?: string; category?: string; tab?: string };
+type CreatorsSearchParams = { q?: string; category?: string; tab?: string; limit?: string };
+
+const DEFAULT_VISIBLE_CREATORS = 6;
+const VISIBLE_CREATORS_STEP = 6;
 
 /**
  * 크리에이터 탐색 페이지 (SPEC-002 FR-002, AC-001).
@@ -20,6 +24,11 @@ export default async function CreatorsPage({
   const query = resolvedSearch.q?.trim() ?? "";
   const category = resolvedSearch.category?.trim() ?? "";
   const entryTab = resolvedSearch.tab === "artworks" ? "artworks" : undefined;
+  const requestedLimit = Number.parseInt(resolvedSearch.limit ?? "", 10);
+  const visibleLimit =
+    Number.isFinite(requestedLimit) && requestedLimit > DEFAULT_VISIBLE_CREATORS
+      ? requestedLimit
+      : DEFAULT_VISIBLE_CREATORS;
   const creators = await listCreators();
   const categories = Array.from(
     new Set(creators.map((creator) => creator.category).filter(Boolean))
@@ -53,6 +62,10 @@ export default async function CreatorsPage({
       };
     }),
   ];
+  const visibleCreators = filteredCreators.slice(0, visibleLimit);
+  const hasMore = visibleCreators.length < filteredCreators.length;
+  const nextLimit = Math.min(filteredCreators.length, visibleLimit + VISIBLE_CREATORS_STEP);
+  const hiddenCount = filteredCreators.length - visibleCreators.length;
 
   return (
     <div className="space-y-8">
@@ -96,23 +109,55 @@ export default async function CreatorsPage({
             조건에 맞는 작가가 없습니다.
           </p>
         ) : (
-          <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredCreators.map((creator) => (
-              <li key={creator.id}>
-                <CreatorCard creator={creator} entryTab={entryTab} />
-              </li>
-            ))}
-          </ul>
+          <div className="space-y-4">
+            <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {visibleCreators.map((creator) => (
+                <li key={creator.id}>
+                  <CreatorCard creator={creator} entryTab={entryTab} />
+                </li>
+              ))}
+            </ul>
+            {hasMore ? (
+              <div className="flex justify-center pt-2">
+                <Link
+                  href={buildCreatorsHref({
+                    q: query,
+                    category,
+                    tab: entryTab,
+                    limit: nextLimit,
+                  })}
+                  className={cn(
+                    buttonVariants({ variant: "outline" }),
+                    "min-w-[160px] border-brand-primary/30 text-brand-primary hover:border-brand-primary hover:bg-brand-subtle",
+                  )}
+                >
+                  {hiddenCount}명 더 보기
+                </Link>
+              </div>
+            ) : null}
+          </div>
         )}
       </section>
     </div>
   );
 }
 
-function buildCreatorsHref({ q, tab }: { q?: string; tab?: string }) {
+function buildCreatorsHref({
+  q,
+  category,
+  tab,
+  limit,
+}: {
+  q?: string;
+  category?: string;
+  tab?: string;
+  limit?: number;
+}) {
   const params = new URLSearchParams();
   if (q) params.set("q", q);
+  if (category) params.set("category", category);
   if (tab) params.set("tab", tab);
+  if (limit && limit > DEFAULT_VISIBLE_CREATORS) params.set("limit", String(limit));
   const query = params.toString();
   return query ? `/creators?${query}` : "/creators";
 }

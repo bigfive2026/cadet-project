@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 /**
  * 스튜디오 편집 폼 (SPEC-002 AC-005, FR-006).
  * profile 값으로 prefill. 제출 시 PATCH /api/studio.
- * 성공 → /dashboard/creator 리다이렉트. 실패 → 에러 메시지.
+ * 성공 → 공개 프로필로 리다이렉트. 실패 → 에러 메시지.
  */
 export interface StudioEditFormProps {
   profile: {
@@ -58,7 +58,7 @@ export function StudioEditForm({ profile }: StudioEditFormProps) {
         setError(body.error ?? `저장에 실패했습니다 (HTTP ${res.status}).`);
         return;
       }
-      redirect("/dashboard/creator");
+      redirect(`/creators/${profile.id}`);
     } catch {
       setError("저장 중 알 수 없는 오류가 발생했습니다.");
     } finally {

@@ -57,7 +57,7 @@ export function listMyApplications(userId: string) {
         },
       },
       // 선착순 프로그램 결제 상태 계산용.
-      payment: { select: { status: true } },
+      payment: { select: { status: true, createdAt: true, updatedAt: true } },
     },
   });
 }

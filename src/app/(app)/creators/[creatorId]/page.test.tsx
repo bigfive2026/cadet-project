@@ -150,6 +150,21 @@ describe("/creators/[creatorId] (AC-002, AC-003, AC-007)", () => {
     expect(btn).toBeDisabled();
   });
 
+  it("크리에이터 본인 프로필에는 편집 CTA를 표시한다", async () => {
+    mockGetCreatorStudio.mockResolvedValue(studio);
+    mockGetCurrentUser.mockResolvedValue({
+      id: "creator-user",
+      role: "CREATOR",
+      creatorProfile: { id: "p-1" },
+    });
+    const ui = await CreatorDetailPage({ params: Promise.resolve({ creatorId: "p-1" }) });
+    render(ui);
+    expect(screen.getByRole("link", { name: "프로필 수정" })).toHaveAttribute(
+      "href",
+      "/dashboard/creator/edit",
+    );
+  });
+
   it("calls notFound when studio is null (AC-007)", async () => {
     mockGetCreatorStudio.mockResolvedValue(null);
     await expect(

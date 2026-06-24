@@ -10,6 +10,8 @@ function renderItem(overrides: Partial<MyApplicationItemData> = {}) {
   const application: MyApplicationItemData = {
     id: "app1",
     status: "PENDING",
+    createdAt: "2026-06-18T00:00:00Z",
+    updatedAt: "2026-06-18T00:00:00Z",
     deliveryRequestedAt: null,
     completionApprovedAt: null,
     program: { id: "prog1", title: "수채화 클래스", priceKrw: 50000 },
@@ -35,6 +37,26 @@ describe("MyApplicationItem", () => {
     expect(screen.getByText("결제")).toBeTruthy();
     expect(screen.getByText("참여 확정")).toBeTruthy();
     expect(screen.getByText("완료")).toBeTruthy();
+  });
+
+  it("진행한 단계의 날짜를 함께 표시한다", () => {
+    renderItem({
+      status: "ACCEPTED",
+      createdAt: "2026-06-18T00:00:00Z",
+      updatedAt: "2026-06-19T00:00:00Z",
+      deliveryRequestedAt: "2026-06-20T00:00:00Z",
+      completionApprovedAt: "2026-06-21T00:00:00Z",
+      payment: {
+        status: "PAID",
+        createdAt: "2026-06-19T00:00:00Z",
+        updatedAt: "2026-06-19T00:00:00Z",
+      },
+    });
+
+    expect(screen.getByLabelText("신청 날짜 6. 18.")).toBeTruthy();
+    expect(screen.getByLabelText("결제 날짜 6. 19.")).toBeTruthy();
+    expect(screen.getByLabelText("진행 날짜 6. 20.")).toBeTruthy();
+    expect(screen.getByLabelText("완료 날짜 6. 21.")).toBeTruthy();
   });
 
   it("신청됨(PENDING) 상태 배지를 표시한다", () => {

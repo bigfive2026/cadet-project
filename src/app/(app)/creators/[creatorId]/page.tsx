@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { getCreatorStudio } from "@/lib/queries/studio";
 import { getCreatorRating } from "@/lib/queries/reviews";
 import { getCurrentUser } from "@/lib/auth";
@@ -9,6 +10,7 @@ import { listCommunityPosts } from "@/lib/queries/community";
 import { joinMembership } from "@/app/(app)/creators/[creatorId]/actions";
 import { StudioTabs } from "@/components/studio/StudioTabs";
 import { BookmarkButton } from "@/components/studio/BookmarkButton";
+import { buttonVariants } from "@/components/ui/button";
 
 /**
  * 크리에이터 스튜디오 상세 페이지 (SPEC-002 FR-011, SPEC-003 FR-003, FR-006, AC-003,
@@ -63,10 +65,13 @@ export default async function CreatorDetailPage({
   // 북마크 버튼: 팬이고 본인 크리에이터 프로필이 아닐 때만 노출 (PRD §13.2)
   const isOwnStudio =
     currentUser?.role === "CREATOR" && currentUser.creatorProfile?.id === creatorId;
-  const headerAction =
-    currentUser && currentUser.role === "FAN" && !isOwnStudio ? (
-      <BookmarkButton creatorProfileId={creatorId} initialBookmarked={bookmarked} />
-    ) : undefined;
+  const headerAction = isOwnStudio ? (
+    <Link href="/dashboard/creator/edit" className={buttonVariants({ size: "sm" })}>
+      프로필 수정
+    </Link>
+  ) : currentUser && currentUser.role === "FAN" ? (
+    <BookmarkButton creatorProfileId={creatorId} initialBookmarked={bookmarked} />
+  ) : undefined;
 
   return (
     <StudioTabs

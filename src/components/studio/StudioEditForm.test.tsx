@@ -66,7 +66,7 @@ describe("StudioEditForm (AC-005)", () => {
     expect(body.studioName).toBe("새 이름");
 
     await waitFor(() => {
-      expect(mockRedirect).toHaveBeenCalledWith("/dashboard/creator");
+      expect(mockRedirect).toHaveBeenCalledWith("/creators/p-1");
     });
   });
 

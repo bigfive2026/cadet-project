@@ -17,6 +17,8 @@ const STEPS = ["신청", "결제", "참여 확정", "진행", "완료"] as const
 export interface MyApplicationItemData {
   id: string;
   status: string;
+  createdAt?: Date | string | null;
+  updatedAt?: Date | string | null;
   deliveryRequestedAt?: Date | string | null;
   completionApprovedAt?: Date | string | null;
   program: {
@@ -26,7 +28,11 @@ export interface MyApplicationItemData {
     /** 본인이 작성한 리뷰(있으면 작성 완료). */
     reviews?: { id: string }[];
   };
-  payment?: { status: string } | null;
+  payment?: {
+    status: string;
+    createdAt?: Date | string | null;
+    updatedAt?: Date | string | null;
+  } | null;
 }
 
 // 신청 상태 + 프로그램 결제 진행 → 현재 도달 스텝 인덱스(0~4).
@@ -55,6 +61,37 @@ const statusPill: Record<string, { label: string; variant: BadgeProps["variant"]
   PAYMENT_FAILED: { label: "결제 실패", variant: "danger" },
 };
 
+function formatStepDate(value?: Date | string | null) {
+  if (!value) return null;
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return new Intl.DateTimeFormat("ko-KR", {
+    month: "numeric",
+    day: "numeric",
+  }).format(date);
+}
+
+function resolveStepDates(application: MyApplicationItemData) {
+  const paidAt =
+    application.payment?.status === "PAID" || application.payment?.status === "RELEASED"
+      ? application.payment.createdAt ?? application.payment.updatedAt
+      : null;
+  const confirmedAt =
+    application.status === "ACCEPTED" ||
+    application.payment?.status === "PAID" ||
+    application.payment?.status === "RELEASED"
+      ? paidAt ?? application.updatedAt
+      : null;
+
+  return [
+    application.createdAt,
+    application.payment?.createdAt,
+    confirmedAt,
+    application.deliveryRequestedAt,
+    application.completionApprovedAt,
+  ].map(formatStepDate);
+}
+
 export function MyApplicationItem({
   application,
   actionSlot,
@@ -68,6 +105,7 @@ export function MyApplicationItem({
   const completed = !!application.completionApprovedAt;
   const pill = statusPill[application.status] ?? statusPill.PENDING;
   const step = resolveStep(application);
+  const stepDates = resolveStepDates(application);
   const nextActionLabel = step <= 1 ? "결제 진행하기" : "참여 상태 보기";
 
   return (
@@ -131,18 +169,32 @@ export function MyApplicationItem({
               );
             })}
           </div>
-          <div className="flex">
-            {STEPS.map((label, i) => (
-              <span
-                key={label}
-                className={cn(
-                  "w-[52px] text-[11px] sm:w-[68px]",
-                  i <= step ? "text-text-default" : "text-text-subtle",
-                )}
-              >
-                {label}
-              </span>
-            ))}
+          <div className="grid grid-cols-5 gap-1">
+            {STEPS.map((label, i) => {
+              const reached = i <= step;
+              const date = stepDates[i];
+
+              return (
+                <span
+                  key={label}
+                  className={cn(
+                    "flex min-w-0 flex-col gap-0.5 text-[11px]",
+                    reached ? "text-text-default" : "text-text-subtle",
+                  )}
+                >
+                  <span className="truncate">{label}</span>
+                  <span
+                    className={cn(
+                      "min-h-[14px] text-[10px] leading-[14px]",
+                      date ? "text-text-muted" : "text-transparent",
+                    )}
+                    aria-label={date ? `${label} 날짜 ${date}` : undefined}
+                  >
+                    {date ?? "-"}
+                  </span>
+                </span>
+              );
+            })}
           </div>
           {actionSlot !== undefined ? (
             <div className="mt-1">{actionSlot}</div>
