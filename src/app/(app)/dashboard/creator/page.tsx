@@ -1,4 +1,15 @@
 import Link from "next/link";
+import {
+  SquarePen,
+  CalendarDays,
+  CalendarPlus,
+  Users,
+  Star,
+  Wallet,
+  MessagesSquare,
+  ChevronRight,
+  type LucideIcon,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { requireRole } from "@/lib/auth";
 import { getCreatorStudio } from "@/lib/queries/studio";
@@ -77,53 +88,51 @@ export default async function CreatorDashboardPage() {
         </section>
       )}
 
-      <section className="grid grid-cols-2 gap-3">
-        <Link
-          href="/dashboard/creator/posts/new"
-          className="rounded-lg border p-4 text-sm font-medium hover:bg-muted"
-        >
-          포스트 작성
-        </Link>
-        <Link
-          href="/dashboard/creator/programs"
-          className="rounded-lg border p-4 text-sm font-medium hover:bg-muted"
-        >
-          내 프로그램
-        </Link>
-        <Link
-          href="/dashboard/creator/programs/new"
-          className="rounded-lg border p-4 text-sm font-medium hover:bg-muted"
-        >
-          프로그램 만들기
-        </Link>
-        <Link
-          href="/dashboard/creator/members"
-          className="rounded-lg border p-4 text-sm font-medium hover:bg-muted"
-        >
-          멤버 관리
-        </Link>
-        <Link
-          href="/dashboard/creator/memberships"
-          className="rounded-lg border p-4 text-sm font-medium hover:bg-muted"
-        >
-          멤버십 관리
-        </Link>
-        <Link
-          href="/dashboard/creator/settlements"
-          className="rounded-lg border p-4 text-sm font-medium hover:bg-muted"
-        >
-          정산 관리
-        </Link>
-        {profile ? (
-          <Link
-            href={`/creators/${profile.id}?tab=community`}
-            className="rounded-lg border p-4 text-sm font-medium hover:bg-muted"
-          >
-            내 커뮤니티
-          </Link>
-        ) : null}
+      <section className="grid gap-3 sm:grid-cols-2">
+        {[
+          { href: "/dashboard/creator/posts/new", label: "포스트 작성", Icon: SquarePen },
+          { href: "/dashboard/creator/programs", label: "내 프로그램", Icon: CalendarDays },
+          { href: "/dashboard/creator/programs/new", label: "프로그램 만들기", Icon: CalendarPlus },
+          { href: "/dashboard/creator/members", label: "멤버 관리", Icon: Users },
+          { href: "/dashboard/creator/memberships", label: "멤버십 관리", Icon: Star },
+          { href: "/dashboard/creator/settlements", label: "정산 관리", Icon: Wallet },
+          ...(profile
+            ? [
+                {
+                  href: `/creators/${profile.id}?tab=community`,
+                  label: "내 커뮤니티",
+                  Icon: MessagesSquare,
+                },
+              ]
+            : []),
+        ].map(({ href, label, Icon }) => (
+          <QuickLink key={href} href={href} label={label} Icon={Icon} />
+        ))}
       </section>
     </div>
+  );
+}
+
+function QuickLink({
+  href,
+  label,
+  Icon,
+}: {
+  href: string;
+  label: string;
+  Icon: LucideIcon;
+}) {
+  return (
+    <Link
+      href={href}
+      className="group flex items-center gap-3 rounded-[var(--radius-card)] border border-border-default bg-white px-5 py-4 shadow-card transition-colors hover:border-brand-primary"
+    >
+      <span className="flex size-10 shrink-0 items-center justify-center rounded-[10px] bg-brand-subtle text-brand-primary">
+        <Icon className="size-5" />
+      </span>
+      <span className="flex-1 text-sm font-semibold text-text-default">{label}</span>
+      <ChevronRight className="size-4 text-text-muted transition-transform group-hover:translate-x-0.5" />
+    </Link>
   );
 }
 
