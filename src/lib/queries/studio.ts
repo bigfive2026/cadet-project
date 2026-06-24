@@ -133,6 +133,7 @@ export function listLockedPosts(limit = 3) {
         select: {
           id: true,
           studioName: true,
+          profileImageUrl: true,
         },
       },
     },
@@ -153,6 +154,7 @@ export function listPopularMembershipPlans(limit = 3) {
         select: {
           id: true,
           studioName: true,
+          profileImageUrl: true,
         },
       },
       memberships: {

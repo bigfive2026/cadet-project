@@ -36,6 +36,11 @@ export interface HomeProgramCardItem {
   endDate?: Date | string | null;
   recruitDeadline?: Date | string | null;
   maxParticipants?: number | null;
+  creatorProfile?: {
+    id: string;
+    studioName: string;
+    profileImageUrl?: string | null;
+  };
 }
 
 export interface HomeLockedPostItem {
@@ -46,6 +51,7 @@ export interface HomeLockedPostItem {
   creatorProfile: {
     id: string;
     studioName: string;
+    profileImageUrl?: string | null;
   };
 }
 
@@ -57,6 +63,7 @@ export interface HomeMembershipPlanItem {
   creatorProfile: {
     id: string;
     studioName: string;
+    profileImageUrl?: string | null;
   };
   memberships?: Array<{ id: string }>;
 }
@@ -177,7 +184,16 @@ export function ListRowProgramCard({ program }: { program: HomeProgramCardItem }
       href={`/programs/${program.id}`}
       className="flex h-[88px] items-center gap-3.5 rounded-lg border border-border-default bg-white py-3 pl-3.5 pr-4 shadow-card transition-colors hover:border-brand-primary/40"
     >
-      <div className="size-[60px] shrink-0 rounded-md bg-gradient-to-br from-[#8CC79E] to-[#66B28C]" />
+      {program.creatorProfile?.profileImageUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={program.creatorProfile.profileImageUrl}
+          alt={program.creatorProfile.studioName}
+          className="size-[60px] shrink-0 rounded-md object-cover"
+        />
+      ) : (
+        <div className="size-[60px] shrink-0 rounded-md bg-gradient-to-br from-[#8CC79E] to-[#66B28C]" />
+      )}
       <div className="min-w-0 flex-1 space-y-1">
         <h3 className="line-clamp-1 font-heading text-[15px] font-bold leading-5 text-text-default">
           {program.title}
@@ -197,8 +213,18 @@ export function LockedPostCard({ post }: { post: HomeLockedPostItem }) {
 
   return (
     <article className="flex h-full min-h-[360px] flex-col overflow-hidden rounded-lg border border-border-default bg-white shadow-card">
-      <div className="flex h-32 items-center justify-center bg-gradient-to-br from-[#D6EFE1] to-[#BCE5CE] text-text-subtle">
-        <Lock className="size-11" strokeWidth={1.8} />
+      <div className="relative h-32 overflow-hidden bg-gradient-to-br from-[#D6EFE1] to-[#BCE5CE] text-text-subtle">
+        {post.creatorProfile.profileImageUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={post.creatorProfile.profileImageUrl}
+            alt={post.creatorProfile.studioName}
+            className="h-full w-full object-cover"
+          />
+        ) : null}
+        <div className="absolute inset-0 flex items-center justify-center bg-black/10">
+          <Lock className="size-11 text-white drop-shadow" strokeWidth={1.8} />
+        </div>
       </div>
       <div className="flex flex-1 flex-col gap-1.5 px-[18px] py-4">
         <Badge variant="secondary" className="w-full justify-start text-[11px] font-bold uppercase">
@@ -227,8 +253,18 @@ export function MembershipPlanPreviewCard({ plan }: { plan: HomeMembershipPlanIt
 
   return (
     <article className="flex h-full min-h-[360px] flex-col overflow-hidden rounded-lg border border-border-default bg-white shadow-card">
-      <div className="flex h-32 items-center justify-center bg-gradient-to-br from-[#E7DEF7] to-[#D5C5F0] text-text-subtle">
-        <Crown className="size-11" strokeWidth={1.8} />
+      <div className="relative h-32 overflow-hidden bg-gradient-to-br from-[#E7DEF7] to-[#D5C5F0] text-text-subtle">
+        {plan.creatorProfile.profileImageUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={plan.creatorProfile.profileImageUrl}
+            alt={plan.creatorProfile.studioName}
+            className="h-full w-full object-cover"
+          />
+        ) : null}
+        <div className="absolute inset-0 flex items-center justify-center bg-black/10">
+          <Crown className="size-11 text-white drop-shadow" strokeWidth={1.8} />
+        </div>
       </div>
       <div className="flex flex-1 flex-col gap-1.5 px-[18px] py-4">
         <Badge variant="membership" className="w-full justify-start text-[11px] font-bold uppercase">

@@ -52,7 +52,7 @@ export function listPublicPrograms(opts?: PublicProgramFilter) {
     },
     orderBy,
     include: {
-      creatorProfile: { select: { id: true, studioName: true } },
+      creatorProfile: { select: { id: true, studioName: true, profileImageUrl: true } },
     },
   });
 }

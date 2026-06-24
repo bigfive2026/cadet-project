@@ -33,7 +33,17 @@ const FEE_RATE = 0.1; // 10% platform fee (tech.md §8)
 const DEMO_PASSWORD = "demo1234!";
 const DEMO_PASSWORD_HASH = bcrypt.hashSync(DEMO_PASSWORD, 10);
 const ASSET_BASE = "/demo-assets";
-type CreatorDemoKey = "seo-yoon" | "min-jae" | "yu-ra" | "na-rin" | "i-jun" | "ga-eun";
+type CreatorDemoKey =
+  | "seo-yoon"
+  | "min-jae"
+  | "yu-ra"
+  | "na-rin"
+  | "i-jun"
+  | "ga-eun"
+  | "so-hee"
+  | "tae-oh"
+  | "ha-neul"
+  | "ji-won";
 const DEMO_CREATOR_KEYS: CreatorDemoKey[] = [
   "seo-yoon",
   "min-jae",
@@ -41,6 +51,10 @@ const DEMO_CREATOR_KEYS: CreatorDemoKey[] = [
   "na-rin",
   "i-jun",
   "ga-eun",
+  "so-hee",
+  "tae-oh",
+  "ha-neul",
+  "ji-won",
 ];
 
 async function main() {
@@ -102,6 +116,7 @@ async function main() {
   await upsertCreatorNotification(creators[0].id);
   // SPEC-008 NFR-004: COMPLETED 프로그램에 리뷰 2개(rating 4, 5 → 평균 4.5).
   await upsertReviews(programs, fans);
+  await upsertHomepageReviews(profiles, fans);
   await upsertCommunityPost(profile.id, fans[0].id);
   // SPEC-007 NFR-003: 권한 사용자 관점에서 최소 2개의 커뮤니티 글이 보이도록 추가.
   // 두 번째 글은 크리에이터 본인이 작성한 공지 형태.
@@ -127,6 +142,10 @@ async function upsertCreators() {
     { email: "creator4@artbridge.demo", name: "최나린" },
     { email: "creator5@artbridge.demo", name: "백이준" },
     { email: "creator6@artbridge.demo", name: "문가은" },
+    { email: "creator7@artbridge.demo", name: "오소희" },
+    { email: "creator8@artbridge.demo", name: "윤태오" },
+    { email: "creator9@artbridge.demo", name: "김하늘" },
+    { email: "creator10@artbridge.demo", name: "서지원" },
   ];
   return Promise.all(
     defs.map((d) =>
@@ -222,6 +241,42 @@ const CREATOR_PROFILE_DEFS = [
     profileImageUrl: `${ASSET_BASE}/exhibition-board-walk-portrait.jpg`,
     instagramUrl: "https://instagram.com/artbridge_demo6",
     websiteUrl: "https://example.com/creator6",
+  },
+  {
+    studioName: "소희 텍스타일 룸",
+    bio: "실, 천, 색실의 반복 패턴을 통해 벽에 걸리는 부드러운 조형과 생활 직물을 만듭니다.",
+    category: "섬유 · 텍스타일",
+    coverImageUrl: `${ASSET_BASE}/textile-weave-cover.jpg`,
+    profileImageUrl: `${ASSET_BASE}/textile-weave-portrait.jpg`,
+    instagramUrl: "https://instagram.com/artbridge_demo7",
+    websiteUrl: "https://example.com/creator7",
+  },
+  {
+    studioName: "태오 스톤 스컬프처",
+    bio: "돌, 석고, 금속 베이스를 조합해 실내에 놓이는 조용한 조각을 제작합니다.",
+    category: "조각",
+    coverImageUrl: `${ASSET_BASE}/stone-sculpture-cover.jpg`,
+    profileImageUrl: `${ASSET_BASE}/stone-sculpture-portrait.jpg`,
+    instagramUrl: "https://instagram.com/artbridge_demo8",
+    websiteUrl: "https://example.com/creator8",
+  },
+  {
+    studioName: "하늘 잉크 페이퍼",
+    bio: "종이 위의 먹 번짐과 여백을 연구하며 작은 드로잉과 수묵 기반 작업을 이어갑니다.",
+    category: "드로잉 · 수묵",
+    coverImageUrl: `${ASSET_BASE}/ink-paper-cover.jpg`,
+    profileImageUrl: `${ASSET_BASE}/ink-paper-portrait.jpg`,
+    instagramUrl: "https://instagram.com/artbridge_demo9",
+    websiteUrl: "https://example.com/creator9",
+  },
+  {
+    studioName: "지원 갤러리 에디션",
+    bio: "전시장의 빛과 관람객의 움직임을 사진, 포스터, 소형 에디션으로 엮습니다.",
+    category: "사진 · 에디션",
+    coverImageUrl: `${ASSET_BASE}/gallery-evening-cover.jpg`,
+    profileImageUrl: `${ASSET_BASE}/gallery-evening-portrait.jpg`,
+    instagramUrl: "https://instagram.com/artbridge_demo10",
+    websiteUrl: "https://example.com/creator10",
   },
 ];
 
@@ -514,6 +569,50 @@ const CREATOR_WORK_DEFS: Record<
       endedAt: new Date("2026-05-10"),
     },
   ],
+  "so-hee": [
+    {
+      id: "demo-work-so-hee-1",
+      title: "색실과 벽면 패턴",
+      kind: "텍스타일 설치",
+      description: "서로 다른 굵기의 실과 천 조각을 벽면 패턴으로 배열한 부드러운 조형 작업입니다.",
+      imageUrl: `${ASSET_BASE}/textile-weave.jpg`,
+      startedAt: new Date("2026-04-05"),
+      endedAt: new Date("2026-06-08"),
+    },
+  ],
+  "tae-oh": [
+    {
+      id: "demo-work-tae-oh-1",
+      title: "스톤 실내 조각",
+      kind: "조각",
+      description: "둥근 석고 형태와 낮은 베이스를 조합해 집 안에 놓이는 작은 조각을 제안합니다.",
+      imageUrl: `${ASSET_BASE}/stone-sculpture.jpg`,
+      startedAt: new Date("2026-03-12"),
+      endedAt: new Date("2026-05-25"),
+    },
+  ],
+  "ha-neul": [
+    {
+      id: "demo-work-ha-neul-1",
+      title: "잉크 페이퍼 스터디",
+      kind: "드로잉",
+      description: "먹의 농도, 종이 섬유, 번짐의 속도를 비교한 작은 드로잉 연구입니다.",
+      imageUrl: `${ASSET_BASE}/ink-paper.jpg`,
+      startedAt: new Date("2026-02-04"),
+      endedAt: new Date("2026-05-02"),
+    },
+  ],
+  "ji-won": [
+    {
+      id: "demo-work-ji-won-1",
+      title: "갤러리 이브닝 시리즈",
+      kind: "사진",
+      description: "늦은 오후 전시장 조명과 관람객의 실루엣을 포스터 에디션으로 구성했습니다.",
+      imageUrl: `${ASSET_BASE}/gallery-evening.jpg`,
+      startedAt: new Date("2026-05-01"),
+      endedAt: new Date("2026-06-20"),
+    },
+  ],
 };
 
 const ARTWORK_DEFS: Record<
@@ -699,6 +798,122 @@ const ARTWORK_DEFS: Record<
       imageUrl: `${ASSET_BASE}/photo-gallery-walk-portrait.jpg`,
       priceKrw: 72000,
       stock: 6,
+      status: ArtworkStatus.PUBLISHED,
+    },
+  ],
+  "so-hee": [
+    {
+      id: "demo-artwork-19",
+      title: "브릭 레드 위빙",
+      description: "붉은색과 그린 톤의 실이 겹치는 벽걸이 텍스타일 작업입니다.",
+      imageUrl: `${ASSET_BASE}/textile-weave.jpg`,
+      priceKrw: 210000,
+      stock: 2,
+      status: ArtworkStatus.PUBLISHED,
+    },
+    {
+      id: "demo-artwork-20",
+      title: "패턴 샘플러 04",
+      description: "여러 직조 밀도를 한 장에 모은 소형 섬유 샘플러입니다.",
+      imageUrl: `${ASSET_BASE}/textile-weave-portrait.jpg`,
+      priceKrw: 96000,
+      stock: 5,
+      status: ArtworkStatus.PUBLISHED,
+    },
+    {
+      id: "demo-artwork-21",
+      title: "소프트 월 피스",
+      description: "밝은 벽면에 걸기 좋은 패브릭 기반의 작은 오브제입니다.",
+      imageUrl: `${ASSET_BASE}/textile-weave-cover.jpg`,
+      priceKrw: 148000,
+      stock: 3,
+      status: ArtworkStatus.PUBLISHED,
+    },
+  ],
+  "tae-oh": [
+    {
+      id: "demo-artwork-22",
+      title: "낮은 베이스의 돌",
+      description: "둥근 석고 형태와 낮은 받침이 만나는 실내 조각입니다.",
+      imageUrl: `${ASSET_BASE}/stone-sculpture.jpg`,
+      priceKrw: 430000,
+      stock: 1,
+      status: ArtworkStatus.PUBLISHED,
+    },
+    {
+      id: "demo-artwork-23",
+      title: "그레이 토르소",
+      description: "부드러운 회색 덩어리감을 강조한 소형 조각 에디션입니다.",
+      imageUrl: `${ASSET_BASE}/stone-sculpture-portrait.jpg`,
+      priceKrw: 260000,
+      stock: 2,
+      status: ArtworkStatus.PUBLISHED,
+    },
+    {
+      id: "demo-artwork-24",
+      title: "베이스 스터디",
+      description: "조각의 받침과 그림자까지 함께 설계한 연구작입니다.",
+      imageUrl: `${ASSET_BASE}/stone-sculpture-cover.jpg`,
+      priceKrw: 190000,
+      stock: 2,
+      status: ArtworkStatus.PUBLISHED,
+    },
+  ],
+  "ha-neul": [
+    {
+      id: "demo-artwork-25",
+      title: "번지는 선 01",
+      description: "물과 먹이 종이 위에서 만나는 순간을 남긴 드로잉입니다.",
+      imageUrl: `${ASSET_BASE}/ink-paper.jpg`,
+      priceKrw: 87000,
+      stock: 7,
+      status: ArtworkStatus.PUBLISHED,
+    },
+    {
+      id: "demo-artwork-26",
+      title: "청록 먹 스터디",
+      description: "차가운 청록 잉크와 여백이 대비되는 종이 작업입니다.",
+      imageUrl: `${ASSET_BASE}/ink-paper-portrait.jpg`,
+      priceKrw: 112000,
+      stock: 4,
+      status: ArtworkStatus.PUBLISHED,
+    },
+    {
+      id: "demo-artwork-27",
+      title: "긴 여백",
+      description: "가로로 긴 화면에 번짐의 리듬을 배열한 페이퍼 에디션입니다.",
+      imageUrl: `${ASSET_BASE}/ink-paper-cover.jpg`,
+      priceKrw: 132000,
+      stock: 3,
+      status: ArtworkStatus.PUBLISHED,
+    },
+  ],
+  "ji-won": [
+    {
+      id: "demo-artwork-28",
+      title: "이브닝 갤러리 프린트",
+      description: "전시장 조명과 관람객 실루엣을 담은 사진 프린트입니다.",
+      imageUrl: `${ASSET_BASE}/gallery-evening.jpg`,
+      priceKrw: 154000,
+      stock: 4,
+      status: ArtworkStatus.PUBLISHED,
+    },
+    {
+      id: "demo-artwork-29",
+      title: "포스터 에디션 A",
+      description: "갤러리 장면을 포스터 비율로 재구성한 한정판 인쇄물입니다.",
+      imageUrl: `${ASSET_BASE}/gallery-evening-portrait.jpg`,
+      priceKrw: 68000,
+      stock: 10,
+      status: ArtworkStatus.PUBLISHED,
+    },
+    {
+      id: "demo-artwork-30",
+      title: "벽면과 프레임",
+      description: "화이트 큐브 공간의 프레임 배열을 기록한 가로형 사진입니다.",
+      imageUrl: `${ASSET_BASE}/gallery-evening-cover.jpg`,
+      priceKrw: 124000,
+      stock: 5,
       status: ArtworkStatus.PUBLISHED,
     },
   ],
@@ -893,6 +1108,30 @@ const CREATOR_PLAN_DEFS: Partial<Record<CreatorDemoKey, {
     description: "포스터 시안, 리서치 보드, 인쇄 샘플 제작 과정을 받아봅니다.",
     priceKrw: 8000,
   },
+  "so-hee": {
+    id: "demo7-plan-1",
+    title: "텍스타일 샘플 클럽",
+    description: "새 실 조합, 패턴 샘플, 작은 패브릭 에디션 제작 과정을 공유합니다.",
+    priceKrw: 9000,
+  },
+  "tae-oh": {
+    id: "demo8-plan-1",
+    title: "조각 스터디 노트",
+    description: "형태 스케치, 재료 테스트, 설치 전 모형 사진을 먼저 받아봅니다.",
+    priceKrw: 12000,
+  },
+  "ha-neul": {
+    id: "demo9-plan-1",
+    title: "잉크 페이퍼 월간지",
+    description: "드로잉 과정, 종이 추천, 먹 농도 실험 기록을 매달 모아 전합니다.",
+    priceKrw: 7000,
+  },
+  "ji-won": {
+    id: "demo10-plan-1",
+    title: "포토 에디션 프리뷰",
+    description: "전시장 촬영 컷, 포스터 시안, 다음 프린트 후보를 먼저 볼 수 있습니다.",
+    priceKrw: 8500,
+  },
 };
 
 const CREATOR_PROGRAM_DEFS: Partial<Record<CreatorDemoKey, {
@@ -939,6 +1178,42 @@ const CREATOR_PROGRAM_DEFS: Partial<Record<CreatorDemoKey, {
     priceKrw: 33000,
     maxParticipants: 14,
     deadlineDays: 28,
+  },
+  "so-hee": {
+    id: "demo7-program-1",
+    title: "작은 직조 샘플 만들기",
+    description: "색실을 고르고 반복 패턴을 짜서 벽에 걸 수 있는 작은 샘플을 완성합니다.",
+    category: "텍스타일 워크숍",
+    priceKrw: 39000,
+    maxParticipants: 10,
+    deadlineDays: 25,
+  },
+  "tae-oh": {
+    id: "demo8-program-1",
+    title: "실내 조각 형태 스터디",
+    description: "석고와 점토로 작은 조각의 덩어리, 받침, 그림자까지 설계합니다.",
+    category: "조각 워크숍",
+    priceKrw: 61000,
+    maxParticipants: 8,
+    deadlineDays: 22,
+  },
+  "ha-neul": {
+    id: "demo9-program-1",
+    title: "먹 번짐과 여백 드로잉",
+    description: "종이와 물의 양을 바꿔가며 번짐을 제어하고 작은 연작을 만듭니다.",
+    category: "드로잉 클래스",
+    priceKrw: 28000,
+    maxParticipants: 16,
+    deadlineDays: 19,
+  },
+  "ji-won": {
+    id: "demo10-program-1",
+    title: "사진을 포스터 에디션으로",
+    description: "전시장 사진을 고르고 크롭, 여백, 캡션을 정리해 포스터 에디션으로 구성합니다.",
+    category: "사진 · 그래픽",
+    priceKrw: 36000,
+    maxParticipants: 12,
+    deadlineDays: 27,
   },
 };
 
@@ -1009,6 +1284,70 @@ const CREATOR_POST_DEFS: Partial<Record<CreatorDemoKey, Array<{
       id: "demo6-post-2",
       title: "리서치 카드 인쇄 전 체크리스트",
       body: "종이 두께, 여백, 작은 캡션의 가독성을 확인하는 프린트 체크리스트입니다.",
+      visibility: PostVisibility.MEMBER_ONLY,
+      priceKrw: null,
+    },
+  ],
+  "so-hee": [
+    {
+      id: "demo7-post-1",
+      title: "실 색을 고를 때 보는 세 가지",
+      body: "같은 붉은색도 광택, 꼬임, 주변색에 따라 완전히 다르게 보입니다.",
+      visibility: PostVisibility.PUBLIC,
+      priceKrw: null,
+    },
+    {
+      id: "demo7-post-2",
+      title: "멤버 전용: 패턴 샘플 도안",
+      body: "이번 달 샘플 클럽에서 사용할 반복 패턴 도안과 실 조합표입니다.",
+      visibility: PostVisibility.MEMBER_ONLY,
+      priceKrw: null,
+    },
+  ],
+  "tae-oh": [
+    {
+      id: "demo8-post-1",
+      title: "작은 조각의 받침을 정하는 법",
+      body: "조각 자체만큼 그림자와 받침 높이가 공간의 인상을 크게 바꿉니다.",
+      visibility: PostVisibility.PUBLIC,
+      priceKrw: null,
+    },
+    {
+      id: "demo8-post-2",
+      title: "유료 노트: 석고 표면 마감",
+      body: "사포 번호와 코팅 순서에 따른 표면 차이를 실제 테스트 사진과 함께 정리했습니다.",
+      visibility: PostVisibility.PAID,
+      priceKrw: 7000,
+    },
+  ],
+  "ha-neul": [
+    {
+      id: "demo9-post-1",
+      title: "먹이 번지는 속도를 늦추는 방법",
+      body: "종이 수분과 붓의 물 양을 조절하면 같은 선도 더 오래 머무릅니다.",
+      visibility: PostVisibility.PUBLIC,
+      priceKrw: null,
+    },
+    {
+      id: "demo9-post-2",
+      title: "멤버 전용: 종이별 테스트 표",
+      body: "세 종류의 종이에 같은 농도의 먹을 올려 번짐과 마름 시간을 비교했습니다.",
+      visibility: PostVisibility.MEMBER_ONLY,
+      priceKrw: null,
+    },
+  ],
+  "ji-won": [
+    {
+      id: "demo10-post-1",
+      title: "사진을 포스터로 바꾸는 첫 크롭",
+      body: "사진의 정보량을 줄이고 여백을 확보하면 작은 포스터에서도 장면이 또렷해집니다.",
+      visibility: PostVisibility.PUBLIC,
+      priceKrw: null,
+    },
+    {
+      id: "demo10-post-2",
+      title: "멤버 전용: 에디션 넘버링 기준",
+      body: "프린트 크기, 종이, 보관 봉투까지 포함한 에디션 제작 기준을 공유합니다.",
       visibility: PostVisibility.MEMBER_ONLY,
       priceKrw: null,
     },
@@ -1470,6 +1809,58 @@ async function upsertReviews(
   });
 }
 
+async function upsertHomepageReviews(
+  profiles: Array<{ id: string; userId: string }>,
+  fans: Array<{ id: string }>,
+) {
+  const completed = await prisma.program.findUnique({
+    where: { id: "demo-program-completed" },
+    select: { id: true },
+  });
+  if (!completed) return;
+
+  const ratings = [
+    { keyIndex: 1, rating: 5, comment: "작품 설명이 섬세하고 실제 컬렉션 선택에 도움이 됐어요." },
+    { keyIndex: 2, rating: 5, comment: "사진을 읽는 관점이 새로웠고 전시 동선까지 이해하게 됐습니다." },
+    { keyIndex: 3, rating: 5, comment: "색면을 나누는 기준이 명확해서 작업을 보는 재미가 커졌어요." },
+    { keyIndex: 4, rating: 4, comment: "도자 오브제를 고르는 기준을 친절하게 알려줘서 좋았습니다." },
+    { keyIndex: 5, rating: 5, comment: "전시 그래픽이 만들어지는 과정을 실제처럼 배울 수 있었어요." },
+    { keyIndex: 6, rating: 4, comment: "직조 샘플 설명이 구체적이고 색 조합이 아름다웠습니다." },
+    { keyIndex: 7, rating: 5, comment: "조각의 받침과 그림자를 함께 보는 관점이 인상 깊었어요." },
+    { keyIndex: 8, rating: 4, comment: "먹과 종이를 다루는 작은 차이를 쉽게 이해했습니다." },
+    { keyIndex: 9, rating: 5, comment: "사진 프린트와 포스터 제작 흐름이 선명하게 잡혔습니다." },
+  ];
+
+  await Promise.all(
+    ratings.flatMap((item, index) => {
+      const profile = profiles[item.keyIndex];
+      if (!profile) return [];
+      return fans.slice(0, 2).map((fan, fanIndex) =>
+        prisma.review.upsert({
+          where: { id: `demo-home-review-${index + 1}-${fanIndex + 1}` },
+          update: {
+            programId: completed.id,
+            userId: fan.id,
+            revieweeId: profile.userId,
+            rating: fanIndex === 0 ? item.rating : Math.max(4, item.rating - 1),
+            comment: item.comment,
+            tags: fanIndex === 0 ? ["설명이 좋아요", "다시 보고 싶어요"] : ["작품이 좋아요", "추천해요"],
+          },
+          create: {
+            id: `demo-home-review-${index + 1}-${fanIndex + 1}`,
+            programId: completed.id,
+            userId: fan.id,
+            revieweeId: profile.userId,
+            rating: fanIndex === 0 ? item.rating : Math.max(4, item.rating - 1),
+            comment: item.comment,
+            tags: fanIndex === 0 ? ["설명이 좋아요", "다시 보고 싶어요"] : ["작품이 좋아요", "추천해요"],
+          },
+        }),
+      );
+    }),
+  );
+}
+
 // ──────────────────────────── 12-1. CreatorPayoutAccount ────────────────────────────
 
 async function upsertPayoutAccounts(profiles: Array<{ id: string }>) {
@@ -1536,6 +1927,50 @@ async function upsertPayoutAccounts(profiles: Array<{ id: string }>) {
       accountHolder: "문가은",
       accountNumberMasked: "3333-***-**6407",
       accountNumberLast4: "6407",
+      businessRegistrationNo: null,
+      verificationStatus: PayoutVerificationStatus.VERIFIED,
+      verifiedAt: new Date(),
+    },
+    {
+      creatorProfileId: profiles[6]?.id,
+      businessType: CreatorPayoutBusinessType.PERSONAL,
+      bankName: "신한은행",
+      accountHolder: "오소희",
+      accountNumberMasked: "088-***-**3371",
+      accountNumberLast4: "3371",
+      businessRegistrationNo: null,
+      verificationStatus: PayoutVerificationStatus.VERIFIED,
+      verifiedAt: new Date(),
+    },
+    {
+      creatorProfileId: profiles[7]?.id,
+      businessType: CreatorPayoutBusinessType.SOLE_PROPRIETOR,
+      bankName: "기업은행",
+      accountHolder: "윤태오",
+      accountNumberMasked: "020-***-**5928",
+      accountNumberLast4: "5928",
+      businessRegistrationNo: "345-67-89012",
+      verificationStatus: PayoutVerificationStatus.PENDING_VERIFICATION,
+      verifiedAt: null,
+    },
+    {
+      creatorProfileId: profiles[8]?.id,
+      businessType: CreatorPayoutBusinessType.PERSONAL,
+      bankName: "농협은행",
+      accountHolder: "김하늘",
+      accountNumberMasked: "302-***-**8460",
+      accountNumberLast4: "8460",
+      businessRegistrationNo: null,
+      verificationStatus: PayoutVerificationStatus.VERIFIED,
+      verifiedAt: new Date(),
+    },
+    {
+      creatorProfileId: profiles[9]?.id,
+      businessType: CreatorPayoutBusinessType.PERSONAL,
+      bankName: "케이뱅크",
+      accountHolder: "서지원",
+      accountNumberMasked: "700-***-**2186",
+      accountNumberLast4: "2186",
       businessRegistrationNo: null,
       verificationStatus: PayoutVerificationStatus.VERIFIED,
       verifiedAt: new Date(),
