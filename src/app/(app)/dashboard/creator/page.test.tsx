@@ -57,6 +57,19 @@ describe("/dashboard/creator (AC-004)", () => {
     expect(postLink).toHaveAttribute("href");
   });
 
+  it("renders separated artwork and work management links", async () => {
+    const ui = await CreatorDashboardPage();
+    render(ui);
+    expect(screen.getByRole("link", { name: /작품 관리/ })).toHaveAttribute(
+      "href",
+      "/dashboard/creator/artworks",
+    );
+    expect(screen.getByRole("link", { name: /작업 관리/ })).toHaveAttribute(
+      "href",
+      "/dashboard/creator/works",
+    );
+  });
+
   it("renders 프로그램 만들기 link (AC-004)", async () => {
     const ui = await CreatorDashboardPage();
     render(ui);

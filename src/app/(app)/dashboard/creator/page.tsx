@@ -1,6 +1,8 @@
 import Link from "next/link";
 import {
   SquarePen,
+  Image as ImageIcon,
+  Palette,
   CalendarDays,
   CalendarPlus,
   Users,
@@ -89,6 +91,8 @@ export default async function CreatorDashboardPage() {
 
       <section className="grid gap-3 sm:grid-cols-2">
         {[
+          { href: "/dashboard/creator/artworks", label: "작품 관리", Icon: ImageIcon },
+          { href: "/dashboard/creator/works", label: "작업 관리", Icon: Palette },
           { href: "/dashboard/creator/posts/new", label: "포스트 작성", Icon: SquarePen },
           { href: "/dashboard/creator/programs", label: "내 프로그램", Icon: CalendarDays },
           { href: "/dashboard/creator/programs/new", label: "프로그램 만들기", Icon: CalendarPlus },

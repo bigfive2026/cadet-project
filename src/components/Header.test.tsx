@@ -74,7 +74,7 @@ describe("Header GNB", () => {
     expectLink("내 프로필", "/creators/cp-1");
     expectLink("관리 홈", "/dashboard/creator");
     expectLink("작품", "/dashboard/creator/artworks");
-    expectLink("작업", "/dashboard/creator/posts/new");
+    expectLink("작업", "/dashboard/creator/works");
     expectLink("프로그램", "/dashboard/creator/programs");
     expectLink("주문·배송", "/dashboard/creator/artwork-orders");
     expectLink("정산", "/dashboard/creator/settlements");

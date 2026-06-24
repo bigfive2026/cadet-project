@@ -86,7 +86,7 @@ export async function Header() {
           },
           { href: "/dashboard/creator", label: "관리 홈" },
           { href: "/dashboard/creator/artworks", label: "작품" },
-          { href: "/dashboard/creator/posts/new", label: "작업" },
+          { href: "/dashboard/creator/works", label: "작업" },
           { href: "/dashboard/creator/programs", label: "프로그램" },
           { href: "/dashboard/creator/artwork-orders", label: "주문·배송" },
           { href: "/dashboard/creator/settlements", label: "정산" },
