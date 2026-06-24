@@ -40,7 +40,7 @@ export default async function CreatorArtworksPage() {
         </p>
       </header>
 
-      <section className="grid gap-4 lg:grid-cols-2">
+      <section className="grid items-start gap-4 lg:grid-cols-2">
         <CreatorWorkForm />
         <ArtworkForm />
       </section>

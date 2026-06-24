@@ -122,16 +122,16 @@ export function CreatorWorkManagerCard({ work }: { work: CreatorWorkItem }) {
       ) : null}
       {editing ? (
         <form action={submit} className="grid gap-3 border-t border-border-default pt-3">
-          <input name="title" required defaultValue={work.title} className="h-10 rounded-[var(--radius-control)] border border-border-default px-3 text-sm" />
+          <input name="title" required defaultValue={work.title} className="h-10 w-full rounded-[var(--radius-control)] border border-border-default px-3 text-sm" />
           <div className="grid gap-3 sm:grid-cols-2">
-            <input name="kind" defaultValue={work.kind ?? ""} placeholder="유형" className="h-10 rounded-[var(--radius-control)] border border-border-default px-3 text-sm" />
-            <input name="externalUrl" defaultValue={work.externalUrl ?? ""} placeholder="외부 링크" className="h-10 rounded-[var(--radius-control)] border border-border-default px-3 text-sm" />
+            <input name="kind" defaultValue={work.kind ?? ""} placeholder="유형" className="h-10 w-full rounded-[var(--radius-control)] border border-border-default px-3 text-sm" />
+            <input name="externalUrl" defaultValue={work.externalUrl ?? ""} placeholder="외부 링크" className="h-10 w-full rounded-[var(--radius-control)] border border-border-default px-3 text-sm" />
           </div>
-          <textarea name="description" defaultValue={work.description ?? ""} placeholder="설명" rows={3} className="rounded-[var(--radius-control)] border border-border-default px-3 py-2 text-sm" />
+          <textarea name="description" defaultValue={work.description ?? ""} placeholder="설명" rows={3} className="w-full rounded-[var(--radius-control)] border border-border-default px-3 py-2 text-sm" />
           <ImageUploadField name="imageUrl" label="작업물 이미지" defaultValue={work.imageUrl} />
           <div className="grid gap-3 sm:grid-cols-2">
-            <input name="startedAt" type="date" defaultValue={work.startedAt ?? ""} className="h-10 rounded-[var(--radius-control)] border border-border-default px-3 text-sm" />
-            <input name="endedAt" type="date" defaultValue={work.endedAt ?? ""} className="h-10 rounded-[var(--radius-control)] border border-border-default px-3 text-sm" />
+            <input name="startedAt" type="date" defaultValue={work.startedAt ?? ""} className="h-10 w-full rounded-[var(--radius-control)] border border-border-default px-3 text-sm" />
+            <input name="endedAt" type="date" defaultValue={work.endedAt ?? ""} className="h-10 w-full rounded-[var(--radius-control)] border border-border-default px-3 text-sm" />
           </div>
           <div className="flex flex-wrap gap-2">
             <Button type="submit" size="sm" disabled={state === "pending"}>
@@ -248,13 +248,13 @@ export function ArtworkManagerCard({ artwork }: { artwork: ArtworkItem }) {
       </div>
       {editing ? (
         <form action={submit} className="grid gap-3 border-t border-border-default pt-3">
-          <input name="title" required defaultValue={artwork.title} className="h-10 rounded-[var(--radius-control)] border border-border-default px-3 text-sm" />
-          <textarea name="description" defaultValue={artwork.description ?? ""} placeholder="설명" rows={3} className="rounded-[var(--radius-control)] border border-border-default px-3 py-2 text-sm" />
+          <input name="title" required defaultValue={artwork.title} className="h-10 w-full rounded-[var(--radius-control)] border border-border-default px-3 text-sm" />
+          <textarea name="description" defaultValue={artwork.description ?? ""} placeholder="설명" rows={3} className="w-full rounded-[var(--radius-control)] border border-border-default px-3 py-2 text-sm" />
           <ImageUploadField name="imageUrl" label="작품 이미지" defaultValue={artwork.imageUrl} />
           <div className="grid gap-3 sm:grid-cols-3">
-            <input name="priceKrw" required type="number" min={1} defaultValue={artwork.priceKrw} className="h-10 rounded-[var(--radius-control)] border border-border-default px-3 text-sm" />
-            <input name="stock" required type="number" min={0} defaultValue={artwork.stock} className="h-10 rounded-[var(--radius-control)] border border-border-default px-3 text-sm" />
-            <select name="status" defaultValue={artwork.status === "SOLD" || artwork.status === "RESERVED" ? "HIDDEN" : artwork.status} className="h-10 rounded-[var(--radius-control)] border border-border-default px-3 text-sm">
+            <input name="priceKrw" required type="number" min={1} defaultValue={artwork.priceKrw} className="h-10 w-full rounded-[var(--radius-control)] border border-border-default px-3 text-sm" />
+            <input name="stock" required type="number" min={0} defaultValue={artwork.stock} className="h-10 w-full rounded-[var(--radius-control)] border border-border-default px-3 text-sm" />
+            <select name="status" defaultValue={artwork.status === "SOLD" || artwork.status === "RESERVED" ? "HIDDEN" : artwork.status} className="h-10 w-full rounded-[var(--radius-control)] border border-border-default px-3 text-sm">
               <option value="DRAFT">임시저장</option>
               <option value="PUBLISHED">판매 공개</option>
               <option value="HIDDEN">숨김</option>

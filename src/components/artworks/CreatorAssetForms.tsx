@@ -69,16 +69,16 @@ export function CreatorWorkForm() {
       }}
     >
       <h2 className="font-heading text-lg font-semibold text-text-default">기존 작업물 등록</h2>
-      <input name="title" required placeholder="작업명" className="h-10 rounded-[var(--radius-control)] border border-border-default px-3 text-sm" />
+      <input name="title" required placeholder="작업명" className="h-10 w-full rounded-[var(--radius-control)] border border-border-default px-3 text-sm" />
       <div className="grid gap-3 sm:grid-cols-2">
-        <input name="kind" placeholder="유형" className="h-10 rounded-[var(--radius-control)] border border-border-default px-3 text-sm" />
-        <input name="externalUrl" placeholder="외부 링크" className="h-10 rounded-[var(--radius-control)] border border-border-default px-3 text-sm" />
+        <input name="kind" placeholder="유형" className="h-10 w-full rounded-[var(--radius-control)] border border-border-default px-3 text-sm" />
+        <input name="externalUrl" placeholder="외부 링크" className="h-10 w-full rounded-[var(--radius-control)] border border-border-default px-3 text-sm" />
       </div>
-      <textarea name="description" placeholder="설명" rows={3} className="rounded-[var(--radius-control)] border border-border-default px-3 py-2 text-sm" />
+      <textarea name="description" placeholder="설명" rows={3} className="w-full rounded-[var(--radius-control)] border border-border-default px-3 py-2 text-sm" />
       <ImageUploadField name="imageUrl" label="작업물 이미지" />
       <div className="grid gap-3 sm:grid-cols-2">
-        <input name="startedAt" type="date" className="h-10 rounded-[var(--radius-control)] border border-border-default px-3 text-sm" />
-        <input name="endedAt" type="date" className="h-10 rounded-[var(--radius-control)] border border-border-default px-3 text-sm" />
+        <input name="startedAt" type="date" className="h-10 w-full rounded-[var(--radius-control)] border border-border-default px-3 text-sm" />
+        <input name="endedAt" type="date" className="h-10 w-full rounded-[var(--radius-control)] border border-border-default px-3 text-sm" />
       </div>
       <Button type="submit" size="sm" disabled={feedback.state === "pending"}>
         {feedback.state === "pending" ? "등록 중" : "작업물 등록"}
@@ -141,13 +141,13 @@ export function ArtworkForm() {
       }}
     >
       <h2 className="font-heading text-lg font-semibold text-text-default">판매 작품 등록</h2>
-      <input name="title" required placeholder="작품명" className="h-10 rounded-[var(--radius-control)] border border-border-default px-3 text-sm" />
-      <textarea name="description" placeholder="설명" rows={3} className="rounded-[var(--radius-control)] border border-border-default px-3 py-2 text-sm" />
+      <input name="title" required placeholder="작품명" className="h-10 w-full rounded-[var(--radius-control)] border border-border-default px-3 text-sm" />
+      <textarea name="description" placeholder="설명" rows={3} className="w-full rounded-[var(--radius-control)] border border-border-default px-3 py-2 text-sm" />
       <ImageUploadField name="imageUrl" label="작품 이미지" />
       <div className="grid gap-3 sm:grid-cols-3">
-        <input name="priceKrw" required type="number" min={1} placeholder="가격" className="h-10 rounded-[var(--radius-control)] border border-border-default px-3 text-sm" />
-        <input name="stock" required type="number" min={0} defaultValue={1} placeholder="재고" className="h-10 rounded-[var(--radius-control)] border border-border-default px-3 text-sm" />
-        <select name="status" defaultValue="DRAFT" className="h-10 rounded-[var(--radius-control)] border border-border-default px-3 text-sm">
+        <input name="priceKrw" required type="number" min={1} placeholder="가격" className="h-10 w-full rounded-[var(--radius-control)] border border-border-default px-3 text-sm" />
+        <input name="stock" required type="number" min={0} defaultValue={1} placeholder="재고" className="h-10 w-full rounded-[var(--radius-control)] border border-border-default px-3 text-sm" />
+        <select name="status" defaultValue="DRAFT" className="h-10 w-full rounded-[var(--radius-control)] border border-border-default px-3 text-sm">
           <option value="DRAFT">임시저장</option>
           <option value="PUBLISHED">판매 공개</option>
           <option value="HIDDEN">숨김</option>
