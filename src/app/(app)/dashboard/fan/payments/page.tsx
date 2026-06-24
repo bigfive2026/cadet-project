@@ -104,28 +104,28 @@ export default async function FanPaymentsPage() {
       <section className="grid gap-3 sm:grid-cols-2">
         <Link
           href="/dashboard/fan/applications"
-          className="rounded-lg border border-border-default p-4 transition-colors hover:border-brand-primary hover:bg-brand-subtle"
+          className="rounded-[12px] border border-border-default bg-white p-4 transition-colors hover:border-brand-primary hover:bg-brand-subtle"
         >
           <p className="text-sm font-semibold text-text-default">프로그램 신청</p>
           <p className="mt-1 text-xs text-text-muted">참여 신청과 확정 상태를 확인합니다.</p>
         </Link>
         <Link
           href="/dashboard/fan/artwork-orders"
-          className="rounded-lg border border-border-default p-4 transition-colors hover:border-brand-primary hover:bg-brand-subtle"
+          className="rounded-[12px] border border-border-default bg-white p-4 transition-colors hover:border-brand-primary hover:bg-brand-subtle"
         >
           <p className="text-sm font-semibold text-text-default">작품 주문</p>
           <p className="mt-1 text-xs text-text-muted">배송, 수령, 문제 신고를 관리합니다.</p>
         </Link>
         <Link
           href="/dashboard/fan/memberships"
-          className="rounded-lg border border-border-default p-4 transition-colors hover:border-brand-primary hover:bg-brand-subtle"
+          className="rounded-[12px] border border-border-default bg-white p-4 transition-colors hover:border-brand-primary hover:bg-brand-subtle"
         >
           <p className="text-sm font-semibold text-text-default">멤버십</p>
           <p className="mt-1 text-xs text-text-muted">가입한 작가 멤버십을 봅니다.</p>
         </Link>
         <Link
           href="/dashboard/fan/payments"
-          className="rounded-lg border border-border-default p-4 transition-colors hover:border-brand-primary hover:bg-brand-subtle"
+          className="rounded-[12px] border border-border-default bg-white p-4 transition-colors hover:border-brand-primary hover:bg-brand-subtle"
         >
           <p className="text-sm font-semibold text-text-default">결제 내역</p>
           <p className="mt-1 text-xs text-text-muted">멤버십, 프로그램, 작품 결제를 모아봅니다.</p>
