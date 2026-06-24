@@ -28,7 +28,16 @@ export default async function PostPage({
     where: { id },
     include: {
       creatorProfile: {
-        select: { id: true, studioName: true, profileImageUrl: true },
+        select: {
+          id: true,
+          studioName: true,
+          profileImageUrl: true,
+          plans: {
+            orderBy: { createdAt: "asc" },
+            take: 1,
+            select: { id: true },
+          },
+        },
       },
       comments: {
         orderBy: { createdAt: "desc" },
@@ -84,6 +93,10 @@ export default async function PostPage({
 
   const canView = await canViewPost(currentUser, post);
   const createdToast = createdKind ? <PostCreatedToast kind={createdKind} /> : null;
+  const membershipPlanId = post.creatorProfile?.plans?.[0]?.id;
+  const membershipCheckoutHref = membershipPlanId
+    ? `/creators/${post.creatorProfileId}/memberships/${membershipPlanId}/checkout`
+    : undefined;
 
   if (canView) {
     return (
@@ -123,6 +136,7 @@ export default async function PostPage({
       <LockedPostPreview
         title={post.title}
         creatorId={post.creatorProfileId}
+        membershipCheckoutHref={membershipCheckoutHref}
         isPaid={post.visibility === "PAID"}
         postId={post.id}
         priceKrw={post.priceKrw}

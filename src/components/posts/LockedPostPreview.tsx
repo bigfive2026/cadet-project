@@ -11,6 +11,7 @@ import { PurchaseButton } from "@/components/posts/PurchaseButton";
 export interface LockedPostPreviewProps {
   title: string;
   creatorId: string;
+  membershipCheckoutHref?: string;
   isPaid?: boolean;
   /** PAID 포스트일 때 필수 — 구매 CTA에 사용 (SPEC-009 FR-001). */
   postId?: string;
@@ -21,6 +22,7 @@ export interface LockedPostPreviewProps {
 export function LockedPostPreview({
   title,
   creatorId,
+  membershipCheckoutHref,
   isPaid = false,
   postId,
   priceKrw,
@@ -69,7 +71,7 @@ export function LockedPostPreview({
         ) : null}
         {!isPaid && (
           <a
-            href={`/creators/${creatorId}`}
+            href={membershipCheckoutHref ?? `/creators/${creatorId}?tab=membership`}
             className="inline-block rounded bg-primary px-4 py-2 text-sm text-primary-foreground hover:bg-primary/90"
           >
             멤버십 가입하기
