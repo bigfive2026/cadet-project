@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ChevronDown } from "lucide-react";
 import { LoginForm } from "./LoginForm";
 import { loginWithCredentials, loginWithGoogle, loginAsDemo } from "./actions";
 
@@ -17,73 +17,74 @@ export default async function LoginPage({
   const googleEnabled = !!process.env.GOOGLE_CLIENT_ID;
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-6 bg-background p-8">
-      <div className="space-y-2 text-center">
-        <h1 className="font-heading text-3xl font-bold tracking-tight">ArtBridge</h1>
-        <p className="text-sm text-muted-foreground">
-          계정에 로그인하거나 새로 가입하세요.
-        </p>
-      </div>
+    <main className="flex min-h-screen items-center justify-center bg-surface-canvas px-4 py-10">
+      <section className="w-full max-w-[360px] rounded-lg border border-border-default bg-white p-5 shadow-[0_2px_4px_rgba(0,0,0,0.05)]">
+        <div className="space-y-3.5">
+          <div className="space-y-3">
+            <h1 className="text-center font-heading text-2xl font-bold leading-9 text-text-default">
+              로그인
+            </h1>
+            <p className="text-sm leading-5 text-text-muted">
+              좋아하는 작가와 계속 연결되는 공간
+            </p>
+          </div>
 
-      <Card className="w-full max-w-sm">
-        <CardHeader>
-          <CardTitle className="text-lg">로그인</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
           <LoginForm action={loginWithCredentials} callbackUrl={callbackUrl} />
 
-          {googleEnabled ? (
-            <>
-              <div className="relative py-1 text-center">
-                <span className="bg-card relative z-10 px-2 text-xs text-muted-foreground">
-                  또는
-                </span>
-                <span className="absolute inset-x-0 top-1/2 border-t" />
-              </div>
+          <div className="space-y-3.5">
+            {googleEnabled ? (
               <form action={loginWithGoogle}>
                 <button
                   type="submit"
-                  className="w-full rounded-md border py-2 text-sm font-medium hover:bg-muted"
+                  className="flex h-[38px] w-full items-center justify-center gap-2 rounded border border-border-default bg-white px-4 py-2 text-[13px] font-bold leading-5 text-text-default transition-colors hover:border-border-strong hover:bg-surface-subtle"
                 >
-                  Google로 계속하기
+                  <span className="text-base font-bold text-brand-primary">G</span>
+                  구글 로그인
                 </button>
               </form>
-            </>
-          ) : null}
+            ) : null}
 
-          <p className="text-center text-sm text-muted-foreground">
-            계정이 없나요?{" "}
-            <Link
-              href={callbackUrl ? `/signup?callbackUrl=${encodeURIComponent(callbackUrl)}` : "/signup"}
-              className="font-medium text-primary underline-offset-4 hover:underline"
-            >
-              회원가입
-            </Link>
-          </p>
-        </CardContent>
-      </Card>
+            <p className="text-center text-[13px] leading-5 text-text-muted">
+              계정이 없나요?{" "}
+              <Link
+                href={
+                  callbackUrl
+                    ? `/signup?callbackUrl=${encodeURIComponent(callbackUrl)}`
+                    : "/signup"
+                }
+                className="font-bold text-brand-primary hover:text-brand-primary-pressed"
+              >
+                회원가입
+              </Link>
+            </p>
 
-      <div className="w-full max-w-sm space-y-2">
-        <p className="text-center text-xs text-muted-foreground">데모 계정으로 바로 시작하기</p>
-        <div className="flex gap-2">
-          <form action={loginAsDemo.bind(null, "creator")} className="flex-1">
-            <button
-              type="submit"
-              className="w-full rounded-md border py-2 text-sm font-medium hover:bg-muted"
-            >
-              크리에이터로 시작하기
-            </button>
-          </form>
-          <form action={loginAsDemo.bind(null, "fan")} className="flex-1">
-            <button
-              type="submit"
-              className="w-full rounded-md border py-2 text-sm font-medium hover:bg-muted"
-            >
-              팬으로 시작하기
-            </button>
-          </form>
+            <details className="group">
+              <summary className="flex cursor-pointer list-none items-center justify-center gap-1 text-center text-xs leading-5 text-text-muted transition-colors hover:text-text-default">
+                데모로 바로 시작
+                <ChevronDown className="size-3 transition-transform group-open:rotate-180" />
+              </summary>
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                <form action={loginAsDemo.bind(null, "creator")}>
+                  <button
+                    type="submit"
+                    className="h-9 w-full rounded border border-border-default bg-white px-2 text-xs font-semibold text-text-subtle transition-colors hover:border-brand-primary hover:text-brand-primary"
+                  >
+                    크리에이터
+                  </button>
+                </form>
+                <form action={loginAsDemo.bind(null, "fan")}>
+                  <button
+                    type="submit"
+                    className="h-9 w-full rounded border border-border-default bg-white px-2 text-xs font-semibold text-text-subtle transition-colors hover:border-brand-primary hover:text-brand-primary"
+                  >
+                    팬
+                  </button>
+                </form>
+              </div>
+            </details>
+          </div>
         </div>
-      </div>
+      </section>
     </main>
   );
 }

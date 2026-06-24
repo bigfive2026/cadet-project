@@ -21,12 +21,12 @@ export function LoginForm({ action, callbackUrl }: LoginFormProps) {
   );
 
   return (
-    <form action={formAction} className="space-y-4">
+    <form action={formAction} className="space-y-3.5">
       {callbackUrl ? (
         <input type="hidden" name="callbackUrl" value={callbackUrl} />
       ) : null}
-      <div className="space-y-2">
-        <label htmlFor="login-email" className="text-sm font-medium">
+      <div className="space-y-1.5">
+        <label htmlFor="login-email" className="text-[13px] font-bold leading-5 text-text-default">
           이메일
         </label>
         <Input
@@ -37,10 +37,11 @@ export function LoginForm({ action, callbackUrl }: LoginFormProps) {
           required
           placeholder="you@example.com"
           disabled={pending}
+          className="h-10 rounded"
         />
       </div>
-      <div className="space-y-2">
-        <label htmlFor="login-password" className="text-sm font-medium">
+      <div className="space-y-1.5">
+        <label htmlFor="login-password" className="text-[13px] font-bold leading-5 text-text-default">
           비밀번호
         </label>
         <Input
@@ -50,9 +51,10 @@ export function LoginForm({ action, callbackUrl }: LoginFormProps) {
           autoComplete="current-password"
           required
           disabled={pending}
+          className="h-10 rounded"
         />
       </div>
-      <Button type="submit" className="w-full" disabled={pending}>
+      <Button type="submit" size="sm" className="h-[38px] w-full rounded" disabled={pending}>
         {pending ? "로그인 중…" : "로그인"}
       </Button>
       {state?.error ? (
