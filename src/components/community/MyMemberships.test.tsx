@@ -22,6 +22,7 @@ describe("MyMemberships", () => {
             plan: {
               id: "plan-1",
               title: "서포터",
+              priceKrw: 9900,
               creatorProfile: { id: "cp-1", studioName: "작가 스튜디오" },
             },
           },
@@ -46,6 +47,7 @@ describe("MyMemberships", () => {
             plan: {
               id: "plan-2",
               title: "서포터",
+              priceKrw: 9900,
               creatorProfile: { id: "cp-1", studioName: "작가 스튜디오" },
             },
           },
