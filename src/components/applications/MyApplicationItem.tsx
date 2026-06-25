@@ -141,60 +141,64 @@ export function MyApplicationItem({
           아쉽게도 이번 신청은 받아들여지지 않았어요.
         </p>
       ) : (
-        <div className="flex min-w-0 flex-col gap-2 sm:ml-auto">
-          <div className="flex items-center overflow-hidden">
-            {STEPS.map((label, i) => {
-              const reached = i <= step;
-              const current = i === step;
-              return (
-                <div key={label} className="flex items-center">
-                  <div
-                    className={cn(
-                      "size-3 shrink-0 rounded-full border-2 transition-colors",
-                      reached
-                        ? "border-brand-primary bg-brand-primary"
-                        : "border-neutral-300 bg-white",
-                      current && "ring-2 ring-brand-primary/30",
-                    )}
-                  />
-                  {i < STEPS.length - 1 && (
+        <div className="flex min-w-0 flex-col gap-3 sm:ml-auto">
+          <div className="w-full max-w-[300px]">
+            <div className="grid grid-cols-5">
+              {stepDates.map((date, i) => (
+                <span
+                  key={`${STEPS[i]}-date`}
+                  className={cn(
+                    "min-h-[14px] px-0.5 text-center text-[10px] leading-[14px]",
+                    date ? "text-text-muted" : "text-transparent",
+                  )}
+                  aria-label={date ? `${STEPS[i]} 날짜 ${date}` : undefined}
+                >
+                  {date ?? "-"}
+                </span>
+              ))}
+            </div>
+            <div className="relative my-1 grid grid-cols-5 items-center">
+              <div className="absolute left-[10%] right-[10%] top-1/2 h-0.5 -translate-y-1/2 bg-neutral-200" />
+              <div
+                className="absolute left-[10%] top-1/2 h-0.5 -translate-y-1/2 bg-brand-primary transition-[width]"
+                style={{ width: `${(step / (STEPS.length - 1)) * 80}%` }}
+              />
+              {STEPS.map((label, i) => {
+                const reached = i <= step;
+                const current = i === step;
+
+                return (
+                  <div key={`${label}-marker`} className="relative flex justify-center">
                     <div
                       className={cn(
-                        "h-0.5 w-10 sm:w-14",
-                        i < step ? "bg-brand-primary" : "bg-neutral-200",
+                        "size-3 rounded-full border-2 transition-colors",
+                        reached
+                          ? "border-brand-primary bg-brand-primary"
+                          : "border-neutral-300 bg-white",
+                        current && "ring-2 ring-brand-primary/30",
                       )}
                     />
-                  )}
-                </div>
-              );
-            })}
-          </div>
-          <div className="grid grid-cols-5 gap-1">
-            {STEPS.map((label, i) => {
-              const reached = i <= step;
-              const date = stepDates[i];
+                  </div>
+                );
+              })}
+            </div>
+            <div className="grid grid-cols-5">
+              {STEPS.map((label, i) => {
+                const reached = i <= step;
 
-              return (
-                <span
-                  key={label}
-                  className={cn(
-                    "flex min-w-0 flex-col gap-0.5 text-[11px]",
-                    reached ? "text-text-default" : "text-text-subtle",
-                  )}
-                >
-                  <span className="truncate">{label}</span>
+                return (
                   <span
+                    key={label}
                     className={cn(
-                      "min-h-[14px] text-[10px] leading-[14px]",
-                      date ? "text-text-muted" : "text-transparent",
+                      "px-0.5 text-center text-[11px] leading-[15px]",
+                      reached ? "text-text-default" : "text-text-subtle",
                     )}
-                    aria-label={date ? `${label} 날짜 ${date}` : undefined}
                   >
-                    {date ?? "-"}
+                    {label}
                   </span>
-                </span>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
           {actionSlot !== undefined ? (
             <div className="mt-1">{actionSlot}</div>
