@@ -1370,10 +1370,13 @@ async function upsertApplications(programId: string, fans: Array<{ id: string }>
   // SPEC-013 에스크로 데모: demo-app-1은 결제 완료(PAID) 후 크리에이터가 납품 요청한 상태.
   // deliveryRequestedAt 세팅 → 팬(fans[0])에게 "완료 승인 대기" 배지 + ApproveCompletionButton 노출.
   // update에도 명시 — 재시드 시 납품 요청 상태가 보존된다.
+  // @MX:NOTE 재시드 시 deliveryRequestedAt 을 now 로 덮어쓰면, 이미 완료 승인된
+  // 신청에서 "진행" 시각이 "완료" 시각보다 뒤로 밀려 타임라인이 역전된다.
+  // 따라서 update 에서는 기존 값을 보존하고(create 에서만 1회 설정) 순서를 깨지 않는다.
   const deliveryRequestedAt = new Date();
   await prisma.programApplication.upsert({
     where: { id: "demo-app-1" },
-    update: { deliveryRequestedAt },
+    update: {},
     create: {
       id: "demo-app-1",
       programId,

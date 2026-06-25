@@ -72,6 +72,13 @@ export async function requestDelivery(
     return { ok: false, status: 400, error: "Program is not IN_PROGRESS" };
   }
 
+  // 순서 무결성: 이미 완료 승인된 신청은 "진행(납품 요청)" 단계로 되돌릴 수 없다.
+  // 완료(completionApprovedAt)보다 늦은 deliveryRequestedAt 이 기록되어 타임라인이
+  // 역전되는 것을 소스에서 차단한다.
+  if (application.completionApprovedAt) {
+    return { ok: false, status: 400, error: "Already completed; cannot request delivery" };
+  }
+
   // 결제 완료(PAID) 참여만 (FR-004, AC-003)
   const paid = await prisma.payment.findFirst({
     where: {
