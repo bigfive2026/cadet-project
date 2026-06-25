@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { SectionFilters } from "./SectionFilters";
 
 export interface SectionHeaderFilter {
   label: string;
@@ -35,24 +36,7 @@ export function SectionHeader({
       <h2 className="font-heading text-xl font-bold leading-7 text-text-default">{title}</h2>
       {(filters?.length || href) ? (
         <div className="flex flex-wrap items-center gap-3">
-          {filters?.length ? (
-            <div className="flex rounded-lg bg-neutral-100 p-1">
-              {filters.map((filter) => (
-                <Link
-                  key={`${filter.label}-${filter.href}`}
-                  href={filter.href}
-                  className={cn(
-                    "rounded-md px-2.5 py-1 text-[13px] leading-[18px] text-text-default transition-colors",
-                    filter.active
-                      ? "bg-white font-medium shadow-sm"
-                      : "hover:bg-white/70"
-                  )}
-                >
-                  {filter.label}
-                </Link>
-              ))}
-            </div>
-          ) : null}
+          {filters?.length ? <SectionFilters filters={filters} /> : null}
           {href ? (
             <Link
               href={href}
