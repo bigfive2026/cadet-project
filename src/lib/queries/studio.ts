@@ -15,7 +15,11 @@ export async function getCreatorStudio(id: string) {
     where: { id },
     include: {
       // 공개 스튜디오에는 발행(PUBLISHED) 포스트만 노출 — 임시저장(DRAFT) 제외.
-      posts: { where: { status: "PUBLISHED" }, orderBy: { createdAt: "desc" } },
+      posts: {
+        where: { status: "PUBLISHED" },
+        orderBy: { createdAt: "desc" },
+        include: { _count: { select: { likes: true, comments: true } } },
+      },
       plans: {
         include: {
           memberships: {

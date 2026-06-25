@@ -42,6 +42,8 @@ export interface StudioTabsProps {
       body?: string | null;
       visibility: PostVisibility;
       priceKrw?: number | null;
+      createdAt?: Date | string | null;
+      _count?: { likes: number; comments: number };
     }>;
     plans?: Array<{
       id: string;
@@ -200,7 +202,13 @@ export function StudioTabs({
             ) : null}
           </div>
         ) : null}
-        {active === "posts" ? <PostCardList posts={studio.posts ?? []} /> : null}
+        {active === "posts" ? (
+          <PostCardList
+            posts={studio.posts ?? []}
+            studioName={studio.studioName}
+            profileImageUrl={studio.profileImageUrl}
+          />
+        ) : null}
         {active === "membership" ? (
           <MembershipPlanCardList
             plans={studio.plans ?? []}

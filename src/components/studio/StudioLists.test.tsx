@@ -67,24 +67,24 @@ describe("StudioHeader (NFR-004)", () => {
 });
 
 describe("PostCardList", () => {
-  it("renders visibility badge for each post", () => {
+  it("renders visibility tag for gated posts (member/paid)", () => {
     const posts = [
       { id: "post-1", title: "공개 포스트", body: "x", visibility: "PUBLIC" as const, priceKrw: null },
       { id: "post-2", title: "멤버 포스트", body: "x", visibility: "MEMBER_ONLY" as const, priceKrw: null },
       { id: "post-3", title: "유료 포스트", body: "x", visibility: "PAID" as const, priceKrw: 5000 },
     ];
-    render(<PostCardList posts={posts} />);
-    expect(screen.getByText("공개")).toBeTruthy();
-    expect(screen.getByText("멤버 전용")).toBeTruthy();
+    render(<PostCardList posts={posts} studioName="데모 스튜디오" />);
+    expect(screen.getByText("멤버십")).toBeTruthy();
     expect(screen.getByText("유료")).toBeTruthy();
+    expect(screen.getByText("멤버십 전용 콘텐츠입니다")).toBeTruthy();
   });
 
   it("shows empty state when no posts", () => {
-    render(<PostCardList posts={[]} />);
+    render(<PostCardList posts={[]} studioName="데모 스튜디오" />);
     expect(screen.getByText(/아직 포스트가 없습니다/)).toBeTruthy();
   });
 
-  it("renders post body when present", () => {
+  it("renders post body when present (public)", () => {
     const posts = [
       {
         id: "post-b",
@@ -94,11 +94,11 @@ describe("PostCardList", () => {
         priceKrw: null,
       },
     ];
-    render(<PostCardList posts={posts} />);
+    render(<PostCardList posts={posts} studioName="데모 스튜디오" />);
     expect(screen.getByText("이것은 본문입니다")).toBeTruthy();
   });
 
-  it("links each post card to its detail page", () => {
+  it("links each post title to its detail page", () => {
     const posts = [
       {
         id: "post-link",
@@ -108,8 +108,8 @@ describe("PostCardList", () => {
         priceKrw: null,
       },
     ];
-    render(<PostCardList posts={posts} />);
-    expect(screen.getByRole("link", { name: /클릭 가능한 포스트/ })).toHaveAttribute(
+    render(<PostCardList posts={posts} studioName="데모 스튜디오" />);
+    expect(screen.getByRole("link", { name: "클릭 가능한 포스트" })).toHaveAttribute(
       "href",
       "/posts/post-link",
     );
