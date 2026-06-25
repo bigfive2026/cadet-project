@@ -8,7 +8,7 @@ import { MembershipPlanCardList } from "@/components/studio/MembershipPlanCardLi
 import { ProgramCardList } from "@/components/studio/ProgramCardList";
 import { ArtworkCardList } from "@/components/studio/ArtworkCardList";
 import { CommunityPanel } from "@/components/community/CommunityPanel";
-import { CreatorRatingSummary } from "@/components/creators/CreatorRatingSummary";
+import { StudioPortfolioIntro } from "@/components/studio/StudioPortfolioIntro";
 import type { PostVisibility } from "@prisma/client";
 
 /**
@@ -50,6 +50,7 @@ export interface StudioTabsProps {
       title: string;
       description?: string | null;
       priceKrw: number;
+      memberships?: Array<{ id: string }>;
     }>;
     programs?: Array<{
       id: string;
@@ -72,6 +73,7 @@ export interface StudioTabsProps {
       kind?: string | null;
       description?: string | null;
       imageUrl?: string | null;
+      externalUrl?: string | null;
       startedAt?: Date | string | null;
       endedAt?: Date | string | null;
     }>;
@@ -112,7 +114,6 @@ export function StudioTabs({
   initialTab,
 }: StudioTabsProps) {
   const [active, setActive] = useState<TabId>(initialTab ?? "intro");
-  const works = studio.works ?? [];
 
   return (
     <div className="space-y-4">
@@ -144,63 +145,13 @@ export function StudioTabs({
 
       <section>
         {active === "intro" ? (
-          <div className="space-y-4">
-            <p className="text-sm text-muted-foreground">{studio.bio ?? "작가 소개가 없습니다."}</p>
-            {rating ? (
-              <CreatorRatingSummary
-                creatorProfileId={creatorProfileId}
-                avg={rating.avg}
-                count={rating.count}
-              />
-            ) : null}
-            {works.length > 0 ? (
-              <div className="space-y-3">
-                <div>
-                  <h2 className="font-heading text-base font-semibold text-text-default">작업 이력</h2>
-                  <p className="mt-1 text-sm text-text-muted">
-                    작가가 지나온 전시, 프로젝트, 작업 과정을 이미지와 기간 중심으로 살펴보세요.
-                  </p>
-                </div>
-                <ul className="grid gap-3">
-                  {works.map((work) => (
-                    <li
-                      key={work.id}
-                      className="grid gap-3 rounded-[var(--radius-card)] border border-border-default bg-white p-3 sm:grid-cols-[132px_1fr]"
-                    >
-                      {work.imageUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={work.imageUrl}
-                          alt={work.title}
-                          className="aspect-[4/3] w-full rounded-[var(--radius-control)] object-cover sm:h-full"
-                        />
-                      ) : (
-                        <div className="flex aspect-[4/3] w-full items-center justify-center rounded-[var(--radius-control)] bg-brand-subtle text-sm font-semibold text-brand-primary sm:h-full">
-                          작업 이미지
-                        </div>
-                      )}
-                      <div className="min-w-0 space-y-2">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="rounded-full bg-neutral-100 px-2 py-1 text-xs font-medium text-text-muted">
-                            {work.kind ?? "작업"}
-                          </span>
-                          <span className="text-xs text-text-muted">
-                            {formatWorkPeriod(work.startedAt, work.endedAt)}
-                          </span>
-                        </div>
-                        <p className="font-medium text-text-default">{work.title}</p>
-                        {work.description ? (
-                          <p className="line-clamp-3 text-sm leading-6 text-text-muted">{work.description}</p>
-                        ) : (
-                          <p className="text-sm text-text-muted">아직 소개가 등록되지 않았습니다.</p>
-                        )}
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ) : null}
-          </div>
+          <StudioPortfolioIntro
+            studio={studio}
+            isActiveMember={isActiveMember}
+            joinAction={joinAction}
+            creatorProfileId={creatorProfileId}
+            rating={rating}
+          />
         ) : null}
         {active === "posts" ? (
           <PostCardList
@@ -233,23 +184,4 @@ export function StudioTabs({
       </section>
     </div>
   );
-}
-
-function formatWorkPeriod(startedAt?: Date | string | null, endedAt?: Date | string | null) {
-  const start = formatWorkDate(startedAt);
-  const end = formatWorkDate(endedAt);
-  if (start && end) return `${start} - ${end}`;
-  if (start) return `${start} 시작`;
-  if (end) return `${end} 종료`;
-  return "기간 미등록";
-}
-
-function formatWorkDate(value?: Date | string | null) {
-  if (!value) return null;
-  const date = value instanceof Date ? value : new Date(value);
-  if (Number.isNaN(date.getTime())) return null;
-  return new Intl.DateTimeFormat("ko-KR", {
-    year: "numeric",
-    month: "short",
-  }).format(date);
 }
