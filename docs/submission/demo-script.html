@@ -1,0 +1,186 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ArtBridge 시연 각본</title><style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,'Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif;color:#1f2933;line-height:1.7;margin:0;padding:40px;max-width:920px;margin:0 auto}
+h1{color:#0b3b3e;border-bottom:3px solid #15c5ce;padding-bottom:10px;font-size:27px}
+h2{color:#127884;margin-top:1.9em;border-left:5px solid #15c5ce;padding-left:12px;padding-top:2px;padding-bottom:2px}
+h3{color:#127884;margin-top:1.4em}
+a{color:#0e7c8a}strong{color:#0b3b3e}
+code{background:#eef2f6;padding:1px 6px;border-radius:4px;font-size:.92em;color:#0b3b3e;word-break:break-all}
+pre{background:#0b1220;color:#e2e8f0;padding:14px 16px;border-radius:8px;overflow:auto;font-size:13px}
+pre code{background:none;color:inherit}
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13.5px}
+th,td{border:1px solid #cbd5e1;padding:8px 10px;text-align:left;vertical-align:top;word-break:break-word}
+th{background:#15c5ce;color:#fff;font-weight:600}
+tr:nth-child(even) td{background:#f8fafc}
+blockquote{border-left:4px solid #15c5ce;margin:14px 0;padding:10px 18px;background:#f0fdff;color:#1f2933;border-radius:0 8px 8px 0}
+blockquote p{margin:6px 0}
+hr{border:none;border-top:1px solid #e2e8f0;margin:28px 0}
+ul li{margin:4px 0}
+@media print{body{padding:0;max-width:none}h2{page-break-after:avoid}tr,blockquote{page-break-inside:avoid}}
+</style></head><body><h1>ArtBridge 라이브 시연 각본 (목표 3분 30초~4분)</h1>
+<blockquote>
+<p><strong>흐름:</strong> 발견 → 신뢰(포트폴리오) → 거래(상태머신·에스크로) → 신뢰 누적(리뷰). 모든 화면은 실제 DB·인증·트랜잭션으로 동작(목업 아님).
+<strong>핵심 원칙:</strong> ① 핵심 작업물인 <strong>포트폴리오 &#39;소개&#39; 탭</strong>에 시간을 가장 많이 배분 ② 되돌리기 어려운 액션(완료 승인하기·멤버 제외·계약 액션)은 <strong>클릭하지 않고 가리키며 설명</strong> ③ 정직성 멘트 필수 — <strong>결제는 Mock, 상태 전이는 실제 DB 트랜잭션</strong>이라는 구분을 명확히.
+URL: <code>https://cadet-project.vercel.app</code> · 공통 비번: <code>demo1234!</code> · 메인은 라이브, 문제 시 <code>demo-backup.mp4</code>.</p>
+</blockquote>
+<hr>
+<h2>0. 사전 세팅 체크리스트 (발표 시작 전, 청중 앞에서 하지 않음)</h2>
+<ul>
+<li><input disabled="" type="checkbox"> 브라우저 <strong>창 2개</strong> 준비<ul>
+<li><strong>창A = 팬 계정</strong> : <code>fan1@artbridge.demo</code>(표시명 정하린) / <code>demo1234!</code> → <strong>시연 메인 창</strong></li>
+<li><strong>창B = 작가 계정</strong> : <code>creator@artbridge.demo</code>(이서윤, 스튜디오 &quot;서윤 라이트 아틀리에&quot;) / <code>demo1234!</code> → 작가 관점 전환용</li>
+</ul>
+</li>
+<li><input disabled="" type="checkbox"> <strong>두 창 모두 로그인 완료 상태로 대기</strong> (로그인 장면은 시연에서 생략 — 시간 절약)</li>
+<li><input disabled="" type="checkbox"> 창A를 <strong>작가 탐색(둘러보기, <code>/creators</code>)</strong> 에 미리 띄워두기</li>
+<li><input disabled="" type="checkbox"> 창B를 <strong>관리 홈(<code>/dashboard/creator</code>)</strong> 에 미리 띄워두기</li>
+<li><input disabled="" type="checkbox"> <strong>리허설 시 1회 실측 확인</strong>: 팬이 결제·참여확정한 <strong>demo-program-1 프로그램 상세</strong>에서 <strong>&quot;완료 승인하기&quot;</strong> 버튼이 어느 창(팬/작가)에서 보이는지 확인. 기본 동선은 <strong>창A(팬)</strong> 의 프로그램 상세에서 가리키기. 작가 창에서만 보이면 막3 동선을 창B로 조정.</li>
+<li><input disabled="" type="checkbox"> 화면 배율 100~110%, 슬랙·알림 끄기, 탭은 이 2개만</li>
+<li><input disabled="" type="checkbox"> <code>demo-backup.mp4</code> 플레이어를 별도 창에 <strong>일시정지 상태</strong>로 열어두기</li>
+<li><input disabled="" type="checkbox"> 네트워크 확인: 페이지 1회 새로고침해 로딩 정상 확인 (배포본 44개 라우트 전부 정상, 차단 오류 0건 — 사전 확인 완료)</li>
+<li><input disabled="" type="checkbox"> <strong>금지 버튼 사전 인지</strong>: 프로그램 상세 <strong>&quot;완료 승인하기&quot;</strong>, 신청자 관리 <strong>&quot;멤버 제외&quot;</strong>, 계약 화면 액션 → 라이브에서 <strong>누르지 않는다</strong>. 해당 화면에서는 커서를 버튼에서 살짝 떨어뜨려 둔다.</li>
+</ul>
+<hr>
+<h2>막 1. 발견 (0:00 ~ 0:40 · 약 40초) · 창A(팬)</h2>
+<p><strong>🖱️ 동작</strong></p>
+<ul>
+<li>창A 상단 네비 <strong>둘러보기</strong>(작가 탐색, <code>/creators</code>) 클릭</li>
+<li>작가 목록을 천천히 <strong>스크롤</strong>하며 훑기</li>
+<li>작가 <strong>이서윤(서윤 라이트 아틀리에)</strong> 카드 클릭 → 포트폴리오로 진입</li>
+</ul>
+<p><strong>🗣️ 멘트</strong></p>
+<blockquote>
+<p>&quot;창작자와 팬이 직접 거래할 때 가장 큰 장벽은 <strong>신뢰</strong>입니다. ArtBridge는 이 문제를 제품 흐름으로 해결합니다.&quot;</p>
+<p>&quot;첫 단계는 <strong>발견</strong>입니다. 지금 보시는 작가 목록은 더미 화면이 아니라, 인증된 세션으로 <strong>실제 DB에서 조회한 데이터</strong>입니다. 팬은 분야별로 작가를 탐색하고, 관심 작가를 선택해 들어갑니다.&quot;</p>
+</blockquote>
+<p><strong>💡 포인트</strong>: 빠르게 진입. 여기서 시간 끌지 않기.</p>
+<hr>
+<h2>막 2. 신뢰 — 포트폴리오 &#39;소개&#39; 탭 ★이번 통합의 핵심 작업물 (0:40 ~ 2:00 · 약 80초) · 창A</h2>
+<p>작가 상세 진입 시 기본 탭은 <strong>소개</strong>. 위→아래로 천천히 스크롤하며 각 섹션을 짚는다. <strong>시간을 가장 많이 배분 — 줄이지 않는다.</strong></p>
+<p><strong>🖱️ 동작</strong></p>
+<ul>
+<li>상단 탭 라벨 가볍게 가리킴: <strong>소개(기본) / 포스트 / 멤버십 / 작품 / 클럽 / 커뮤니티</strong></li>
+<li>&#39;소개&#39; 탭 스크롤 순서: ① 스탯행(작가 노트·후원자·프로그램 수) → ② 작가 소개 bio → ③ 평점 → ④ 작품 갤러리 → ⑤ 진행 중인 프로그램 → ⑥ &quot;멤버십으로 더 가까이&quot; + 멤버십 참여하기 버튼</li>
+</ul>
+<p><strong>🗣️ 멘트 (스크롤하며)</strong></p>
+<blockquote>
+<p>&quot;두 번째 단계는 <strong>신뢰</strong>이고, 이 작가 &#39;소개&#39; 탭이 <strong>이번 통합 작업의 핵심 결과물</strong>입니다. 두 팀의 결과물을 합치면서, 작가를 <strong>한 번의 스크롤로 파악</strong>하도록 포트폴리오형으로 재구성했습니다.&quot;</p>
+<p>&quot;위에서부터 보시면 — <strong>상단 통계</strong>로 작가 노트·후원자·프로그램 수를 보여주고, <strong>작가 소개와 평점</strong>, <strong>작품 갤러리</strong>, <strong>진행 중인 프로그램</strong>, 그리고 하단 <strong>멤버십</strong>까지 이어집니다.&quot;</p>
+<p>&quot;여기 <strong>평점</strong>은 광고가 아니라, 뒤에서 보실 거래와 <strong>양방향 리뷰</strong>가 실제로 쌓여 만들어지는 값입니다. 발견에서 시작한 관심이 이 한 화면에서 신뢰로 이어지도록 설계했습니다.&quot;</p>
+</blockquote>
+<p><strong>💡 포인트</strong>: 한 번의 스크롤로 작가 전체를 보여주는 게 핵심. 내부 병합 구도(한진 base/류진 포트폴리오 이식)는 <strong>질문 시에만</strong> 답변.</p>
+<hr>
+<h2>막 3. 거래 — 신청 상태머신 + 에스크로 (2:00 ~ 3:00 · 약 60초 · 압축 안전 밸브 있음) · 전부 창A</h2>
+<p>팬은 이미 신청·결제·참여확정까지 진행된 상태(시드 활용)를 보여준다. <strong>이 막은 전부 창A에서 진행 — 창 전환 없음.</strong></p>
+<p><strong>🖱️ 동작 — ① 신청 라이프사이클</strong></p>
+<ul>
+<li>창A 네비 <strong>내 신청</strong>(<code>/dashboard/fan/applications</code>) 클릭</li>
+<li>상단 <strong>필터 탭</strong>을 좌→우로 짚으며 읽기: <strong>전체 / 신청됨 / 결제 대기 / 참여 확정 / 진행 / 완료 / 거절</strong></li>
+</ul>
+<p><strong>🗣️ 멘트</strong></p>
+<blockquote>
+<p>&quot;세 번째 단계는 <strong>거래</strong>입니다. &#39;내 신청&#39; 화면을 보면 신청 한 건의 전체 라이프사이클이 보입니다 — 신청됨 → 결제 대기 → 참여 확정 → 진행 → 완료, 거절 분기까지. 단순 폼 제출이 아니라 <strong>상태머신</strong>으로 동작하고, 각 전이가 실제 DB 트랜잭션으로 기록됩니다. 이 계정은 이미 결제까지 마친 &#39;참여 확정&#39; 상태입니다.&quot;</p>
+</blockquote>
+<p><strong>🗣️ 정직성 멘트 (이 막에서 반드시)</strong></p>
+<blockquote>
+<p>&quot;여기서 정확히 짚고 가겠습니다. 오늘 보시는 결제는 <strong>데모용 Mock 결제</strong>입니다(실 PG 미연결). 다만 <strong>계약·작품주문 경로는 키만 연동하면 실제 PG(PortOne/Toss)로 전환</strong>되도록 추상화돼 있고, 멤버십·포스트 결제는 데모 정책상 Mock으로 고정했습니다.&quot;</p>
+</blockquote>
+<p><strong>🖱️ 동작 — ② 에스크로 (가리키며 설명, 클릭 금지)</strong></p>
+<ul>
+<li>창A에서 참여확정한 <strong>프로그램 상세(demo-program-1)</strong> 로 이동</li>
+<li><strong>&quot;완료 승인하기&quot;</strong> 버튼을 마우스로 <strong>가리키기만</strong> 한다 (절대 클릭 금지, 커서는 버튼에서 살짝 떨어뜨림)</li>
+</ul>
+<p><strong>🗣️ 멘트 (가리키며, 누르지 않음)</strong></p>
+<blockquote>
+<p>&quot;거래의 핵심은 신뢰를 지키는 장치입니다. 팬이 낸 돈은 작가에게 바로 가지 않고 <strong>에스크로에 묶입니다.</strong> 작업이 끝나면 이 <strong>&#39;완료 승인하기&#39;</strong> 로 에스크로가 풀려 작가에게 정산되는 구조입니다.&quot;</p>
+<p>&quot;한 가지 정확히 말씀드리면 — 이 버튼은 실제 송금이 아니라 <strong>에스크로 상태를 바꾸는 DB 트랜잭션</strong>입니다. 결제 자체는 Mock이지만 상태 전이는 실제로 기록됩니다. 누르면 상태가 바뀌어 데모상 되돌리기 번거로워, 오늘은 <strong>클릭 없이 설명만</strong> 드립니다.&quot;</p>
+</blockquote>
+<blockquote>
+<p>⏱️ <strong>압축 안전 밸브 (시간 초과 조짐 시)</strong>: ② 에스크로에서 프로그램 상세 이동을 생략하고 &#39;내 신청&#39; 화면에 머문 채 구두로만 설명 — &quot;프로그램 상세에 &#39;완료 승인하기&#39;가 있고, 누르면 에스크로가 풀려 정산됩니다. 실제 송금이 아니라 에스크로 상태를 바꾸는 DB 트랜잭션입니다.&quot;</p>
+</blockquote>
+<p><strong>💡 포인트</strong>: &#39;거래&#39;를 단순 결제가 아니라 <strong>에스크로로 보호되는 약속 + 상태머신</strong>으로 프레이밍. &#39;결제는 Mock / 상태 전이는 실제 DB&#39; 구분을 같은 호흡에.</p>
+<hr>
+<h2>막 4. 신뢰 누적 + 클로징 (3:00 ~ 3:40 · 약 40초) · 창B로 전환 → 마무리</h2>
+<p>막3을 전부 창A에서 끝냈으므로, <strong>막4 시작에서 창B(작가)로 전환</strong>한다. 창B는 사전 세팅대로 <strong>관리 홈</strong>에 띄워둔 상태.</p>
+<p><strong>🖱️ 동작</strong></p>
+<ul>
+<li>창B로 전환 → <strong>관리 홈</strong>(<code>/dashboard/creator</code>) → <strong>퀵메뉴</strong> 짚기: 작품 관리 / 작업 관리 / 포스트 작성 / 내 프로그램 / 프로그램 만들기 / 멤버 관리 / 멤버십 관리 / 내 커뮤니티</li>
+<li>(선택) <strong>신청자 관리</strong> 화면 → 참여자 항목과 <strong>&#39;멤버 제외&#39;</strong> 버튼을 <strong>가리키기만</strong> (클릭 금지)</li>
+<li>계약 화면(<code>/contracts/[id]</code>)은 <strong>말로만</strong> 언급 (이 팬 계정 권한/상태에선 액션 버튼이 안 보임)</li>
+</ul>
+<p><strong>🗣️ 멘트</strong></p>
+<blockquote>
+<p>&quot;마지막입니다. 이 모든 건 한쪽만의 화면이 아닙니다. 작가 입장으로 와보면 — 작가는 여기서 작품·프로그램·멤버·정산까지 직접 운영합니다. 신청자 관리 화면을 보면, 팬이 낸 신청이 작가 화면에 그대로, <strong>같은 하나의 DB 위에서 양방향으로</strong> 연결됩니다.&quot;</p>
+<p>&quot;그리고 <strong>리뷰는 거래 완료 후 양쪽이 서로 남기는 구조</strong>로 설계돼 있고, 그 값이 막2에서 보신 <strong>평점으로 누적</strong>됩니다. 오늘은 화면 시연 대신 설명으로 드립니다.&quot;</p>
+</blockquote>
+<p><strong>🗣️ 정직성 멘트 (마무리에 압축)</strong></p>
+<blockquote>
+<p>&quot;정직하게 한 번 더 정리하면 — 결제는 Mock(계약·작품주문은 키 연동 시 실 PG 전환, 멤버십·포스트는 Mock 고정), 구글 로그인은 키 있을 때만 실제 OAuth·없으면 비활성이라 오늘은 이메일/비번, AI 추천은 Mock 폴백, 이미지 업로드는 서버리스 한계로 로컬 저장입니다.&quot;</p>
+</blockquote>
+<p><strong>🗣️ 클로징</strong></p>
+<blockquote>
+<p>&quot;정리하면 — <strong>발견, 신뢰(포트폴리오), 거래(상태머신·에스크로), 신뢰 누적(양방향 리뷰)</strong> 의 한 사이클이 전부 실제 DB·인증·트랜잭션 위에서 동작합니다. MVP 우선순위는 신뢰에 뒀고, 그래서 포트폴리오 통합에 가장 공을 들였습니다. 배포본 44개 페이지가 전부 정상 동작합니다. 이상입니다. 감사합니다.&quot;</p>
+</blockquote>
+<hr>
+<h2>정직성(과장 금지) 멘트 모음 — 질문/필요 시 인용</h2>
+<ul>
+<li><strong>결제</strong>: &quot;데모는 Mock 결제로 시연합니다(실 PG 미연결). 계약·작품주문 경로는 키 연동 시 실 PG(PortOne/Toss)로 전환되도록 추상화, 멤버십·포스트 결제는 Mock 고정입니다.&quot;</li>
+<li><strong>에스크로/완료 승인하기</strong>: &quot;&#39;완료 승인하기&#39;는 실제 송금이 아니라 에스크로 상태를 바꾸는 DB 트랜잭션입니다. 결제 자체는 Mock이지만 상태 전이는 실제로 기록됩니다.&quot;</li>
+<li><strong>Google 로그인</strong>: &quot;키가 있을 때만 실제 OAuth로 작동하고, 없으면 비활성입니다. 가짜 로그인이 아니라 오늘은 이메일/비밀번호로 시연합니다.&quot;</li>
+<li><strong>AI 추천</strong>: &quot;키가 없으면 Mock 폴백으로 동작합니다.&quot;</li>
+<li><strong>이미지 업로드</strong>: &quot;로컬 저장 방식이라 서버리스 환경의 영속성 한계가 있습니다.&quot;</li>
+<li><strong>리뷰</strong>: &quot;양방향 리뷰는 거래 완료 후 양쪽이 남기는 구조이고, 그 값이 평점으로 누적됩니다. 오늘은 설명으로 드립니다.&quot;</li>
+<li><strong>계약 화면</strong>: &quot;이 팬 계정 권한/상태에선 액션 버튼이 안 보여, 계약·에스크로는 클릭 없이 설명 위주로 진행합니다.&quot;</li>
+<li><strong>전체</strong>: &quot;배포본 44개 페이지 라우트가 전부 정상 작동하고, 차단 오류는 0건입니다.&quot;</li>
+</ul>
+<hr>
+<h2>비상 대응 (Plan B)</h2>
+<table>
+<thead>
+<tr>
+<th>상황</th>
+<th>대응</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>페이지 로딩 지연/실패</td>
+<td>1회 새로고침 → 같은 화면 2회 이상 실패 시 즉시 <code>demo-backup.mp4</code>로 전환하며 &quot;라이브 환경 이슈로 백업 영상으로 보여드리겠습니다&quot;</td>
+</tr>
+<tr>
+<td>로그인 풀림</td>
+<td>미리 띄운 반대 창으로 진행, 또는 재로그인(<code>fan1@artbridge.demo</code>/<code>creator@artbridge.demo</code>, <code>demo1234!</code>)</td>
+</tr>
+<tr>
+<td>&#39;완료 승인하기&#39;를 실수로 누름</td>
+<td>되돌리려 시도하지 말 것 → &quot;방금 에스크로 상태가 DB에서 전이됐습니다. 결제는 Mock이지만 상태 전이는 실제 트랜잭션으로 기록되는 구조입니다&quot;로 자연스럽게 전환</td>
+</tr>
+<tr>
+<td>&#39;멤버 제외&#39;를 실수로 누름</td>
+<td>되돌리려 시도하지 말 것 → &quot;방금 참여자 관리 상태가 실제 DB 트랜잭션으로 바뀌었습니다. 작가가 실제로 멤버를 운영하는 구조입니다&quot;로 전환</td>
+</tr>
+<tr>
+<td>계약 화면에 버튼 없다고 지적</td>
+<td>정상. &quot;이 계정 권한/상태에선 액션 버튼이 숨겨집니다. 계약·에스크로는 설명 위주로 진행합니다&quot;</td>
+</tr>
+<tr>
+<td>&#39;완료 승인하기&#39;가 창A에 안 보임</td>
+<td>리허설 실측대로 창B(작가)에서 가리킴. 둘 다 애매하면 ② 에스크로는 구두 대체(압축 안전 밸브)</td>
+</tr>
+<tr>
+<td>특정 탭/섹션이 비어 보임</td>
+<td>시드 데이터 범위 — 억지로 채우지 말고 다음 막으로 이동</td>
+</tr>
+<tr>
+<td>시간 초과 조짐</td>
+<td>막3 후반 ② 에스크로를 구두 대체(프로그램 상세 이동 생략), 막4 퀵메뉴 짚기 생략</td>
+</tr>
+</tbody></table>
+<hr>
+<h2>🎬 빠른 클릭 순서 (커닝페이퍼)</h2>
+<ol>
+<li><strong>(창A 팬)</strong> <code>둘러보기</code> → 작가 카드 → <strong>포트폴리오 &#39;소개&#39; 탭 스크롤 ★(시간 최대)</strong></li>
+<li><strong>(창A 팬)</strong> <code>내 신청</code>(라이프사이클 필터) → <strong>정직성 멘트</strong> → 프로그램 상세(<strong>&quot;완료 승인하기&quot; 가리키기, 무클릭</strong>)</li>
+<li><strong>(창B 작가)</strong> <code>관리 홈</code>(퀵메뉴) → (선택) 신청자 관리(가리키기) → 정산 언급</li>
+<li><strong>(클로징)</strong> 정직성 압축 + 마무리 멘트</li>
+</ol>
+</body></html>
