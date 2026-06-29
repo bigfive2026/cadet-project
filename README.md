@@ -2,6 +2,8 @@
 
 창작자-팬 후원 커뮤니티 MVP — 크리에이터가 작품과 멤버십을 올리고, 팬이 후원·신청·소통하는 웹 서비스.
 
+**배포**: https://codeit-project-sand.vercel.app — `main` 브랜치에 push/merge 시 Vercel이 자동 배포합니다.
+
 ## 기술 스택
 
 - **Framework**: Next.js 16 (App Router)
