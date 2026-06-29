@@ -1,0 +1,221 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ArtBridge 구현 현황표</title><style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,'Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif;color:#1f2933;line-height:1.65;margin:0;padding:36px;max-width:1180px;margin:0 auto}
+h1{color:#0b3b3e;border-bottom:3px solid #15c5ce;padding-bottom:10px;font-size:26px}
+h2{color:#127884;margin-top:1.8em;border-left:5px solid #15c5ce;padding-left:10px}
+h3{color:#127884;margin-top:1.4em}
+a{color:#0e7c8a}
+code{background:#eef2f6;padding:1px 6px;border-radius:4px;font-size:.9em;color:#0b3b3e;word-break:break-all}
+pre{background:#0b1220;color:#e2e8f0;padding:14px 16px;border-radius:8px;overflow:auto;font-size:13px}
+pre code{background:none;color:inherit}
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:12.5px;table-layout:fixed}
+th,td{border:1px solid #cbd5e1;padding:7px 9px;text-align:left;vertical-align:top;word-break:break-word;overflow-wrap:anywhere}
+th{background:#15c5ce;color:#fff;font-weight:600}
+tr:nth-child(even) td{background:#f8fafc}
+img{max-width:100%;height:auto;border-radius:8px}
+blockquote{border-left:4px solid #15c5ce;margin:14px 0;padding:8px 16px;background:#f0fdff;color:#334155;border-radius:0 8px 8px 0}
+hr{border:none;border-top:1px solid #e2e8f0;margin:24px 0}
+@media print{
+  body{padding:0;max-width:none}
+  table{font-size:9px}
+  th,td{padding:3px 5px}
+  tr{page-break-inside:avoid}
+  thead{display:table-header-group}
+  pre{font-size:8.5px;white-space:pre-wrap}
+  h2{page-break-after:avoid}
+}</style></head><body><h1>ArtBridge 구현 현황표 (코드 기준 v0.8)</h1>
+<blockquote>
+<p>정직성 원칙: Mock/부분구현은 사실대로 표기.</p>
+</blockquote>
+<h2>ArtBridge 기능별 구현현황 (코드 근거 기반, 정직 분류)</h2>
+<blockquote>
+<p>검증 근거: <code>src/lib/*</code> 서비스 계층, <code>src/app/api/*/route.ts</code>, <code>src/app/(app)/*</code> 서버액션, <code>src/auth.ts</code>, <code>README.md</code>. 모든 핵심 서비스는 Prisma(PostgreSQL)로 실제 DB에 기록한다. &quot;Mock폴백&quot;은 외부 의존성(PG·OpenAI·소셜) 한정이며, 비즈니스 로직·DB는 실동작이다.</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>기능</th>
+<th>UI</th>
+<th>API</th>
+<th>DB</th>
+<th>상태</th>
+<th>비고</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>회원가입 (이메일/비번)</td>
+<td>O</td>
+<td>O</td>
+<td>O</td>
+<td>구현완료</td>
+<td><code>signup/actions.ts</code> + bcryptjs(<code>password.ts</code>, SALT 10) 해시. User 생성 실DB</td>
+</tr>
+<tr>
+<td>로그인 (이메일/비번)</td>
+<td>O</td>
+<td>O</td>
+<td>O</td>
+<td>구현완료</td>
+<td>Auth.js v5 Credentials, JWT 세션, <code>verifyPassword</code> bcrypt 비교</td>
+</tr>
+<tr>
+<td>Google 소셜로그인</td>
+<td>O</td>
+<td>O</td>
+<td>O(Account)</td>
+<td>조건부 활성화</td>
+<td>버튼 항상 노출. <code>GOOGLE_CLIENT_ID/SECRET</code> 없으면 <code>loginWithGoogle</code>이 <code>/login?error=google_unconfigured</code>로 리다이렉트(크래시 방지). 키 있을 때만 실제 OAuth 작동</td>
+</tr>
+<tr>
+<td>작가 탐색/목록</td>
+<td>O</td>
+<td>O</td>
+<td>O</td>
+<td>구현완료</td>
+<td><code>(app)/creators</code> 목록 + 북마크(<code>bookmarks.ts</code>, @@unique 토글). 실DB 조회</td>
+</tr>
+<tr>
+<td>작가 상세 소개탭(포트폴리오)</td>
+<td>O</td>
+<td>-</td>
+<td>O</td>
+<td>구현완료</td>
+<td><code>StudioPortfolioIntro</code> + <code>StudioTabs</code>(intro/posts/membership/artworks/club/community), <code>?tab=</code> 쿼리 초기탭. CreatorProfile 확장필드 사용</td>
+</tr>
+<tr>
+<td>멤버십 가입</td>
+<td>O</td>
+<td>O</td>
+<td>O</td>
+<td>부분구현</td>
+<td><code>joinMembership</code>이 <code>mockPaymentProvider</code>를 <strong>직접 호출</strong> — PG 키가 있어도 멤버십 결제는 항상 Mock(즉시 성공). Membership/Payment 실DB 생성</td>
+</tr>
+<tr>
+<td>멤버십 관리(생성/취소)</td>
+<td>O</td>
+<td>O</td>
+<td>O</td>
+<td>구현완료</td>
+<td><code>membership-plans</code> POST 실DB, <code>cancelMembership</code>(소유자 검증·CANCELLED)</td>
+</tr>
+<tr>
+<td>프로그램 등록/수정/삭제</td>
+<td>O</td>
+<td>O</td>
+<td>O</td>
+<td>구현완료</td>
+<td><code>programs.ts</code> 소유권 게이트(@MX:ANCHOR), 실DB CRUD</td>
+</tr>
+<tr>
+<td>프로그램 신청</td>
+<td>O</td>
+<td>O</td>
+<td>O</td>
+<td>구현완료</td>
+<td><code>applications.ts</code>, <code>programs/[id]/applications</code> 라우트</td>
+</tr>
+<tr>
+<td>계약/양측서명/에스크로</td>
+<td>O</td>
+<td>O</td>
+<td>O</td>
+<td>구현완료</td>
+<td><code>contracts.ts</code>: 금액조율·팬/크리에이터 서명·트랜잭션. 에스크로 RELEASED는 <code>reviews.ts approveCompletion</code>에서 처리</td>
+</tr>
+<tr>
+<td>결제(PG)</td>
+<td>O</td>
+<td>O</td>
+<td>O</td>
+<td>Mock폴백</td>
+<td><code>resolvePaymentProvider()</code> env 분기: PG키 전부 있으면 <code>SandboxPaymentProvider</code>(PortOne/Toss, 단건조회 검증), 하나라도 없으면 <code>MockPaymentProvider</code>(외부호출 0, 항상 PAID). 계약·작품주문만 PG분기 / 포스트구매·멤버십은 Mock 고정</td>
+</tr>
+<tr>
+<td>정산/지급설정</td>
+<td>O</td>
+<td>O</td>
+<td>O</td>
+<td>구현완료</td>
+<td><code>payout-settings.ts</code> upsert(계좌 마스킹·last4), <code>creator/settlements</code> GET. Settlement 레코드 생성/RELEASED 실DB</td>
+</tr>
+<tr>
+<td>작품 커머스/주문</td>
+<td>O</td>
+<td>O</td>
+<td>O</td>
+<td>Mock폴백</td>
+<td><code>artwork-orders.ts purchaseArtwork</code>: 재고 트랜잭션·Payment·Settlement. 결제 provider는 <code>resolvePaymentProvider()</code>(키 없으면 Mock 즉시 PAID)</td>
+</tr>
+<tr>
+<td>작품 배송/환불/이슈</td>
+<td>O</td>
+<td>O</td>
+<td>O</td>
+<td>구현완료</td>
+<td><code>artwork-fulfillment.ts</code>: shipment/refund/issues/resolve 라우트, 실DB 상태전이</td>
+</tr>
+<tr>
+<td>포스트(공개/멤버/유료)</td>
+<td>O</td>
+<td>O</td>
+<td>O</td>
+<td>구현완료</td>
+<td><code>posts</code> CRUD + <code>post-access.ts canViewPost</code>(PUBLIC/MEMBER_ONLY/PAID 서버측 게이트)</td>
+</tr>
+<tr>
+<td>포스트 유료구매</td>
+<td>O</td>
+<td>O</td>
+<td>O</td>
+<td>Mock 고정</td>
+<td><code>post-purchase.ts</code>가 <code>mockPaymentProvider</code> <strong>직접 호출</strong> — PG키 무관 항상 Mock. Payment/Settlement 실DB</td>
+</tr>
+<tr>
+<td>커뮤니티</td>
+<td>O</td>
+<td>O</td>
+<td>O</td>
+<td>구현완료</td>
+<td><code>community-access.ts canAccessCommunity</code>(멤버/결제참여/소유자), <code>community-posts</code> CRUD 실DB</td>
+</tr>
+<tr>
+<td>알림</td>
+<td>O</td>
+<td>O</td>
+<td>O</td>
+<td>구현완료</td>
+<td><code>notifications.ts</code> 읽음/전체읽음, 각 서비스 트랜잭션 내 Notification 생성. 외부 푸시 없음(인앱 전용)</td>
+</tr>
+<tr>
+<td>상호 리뷰</td>
+<td>O</td>
+<td>O</td>
+<td>O</td>
+<td>구현완료</td>
+<td><code>reviews.ts createReview</code> 양방향(팬↔크리에이터), @@unique 1회 강제, 완료승인 자격검증</td>
+</tr>
+<tr>
+<td>AI 추천(프로그램/멤버십)</td>
+<td>O</td>
+<td>O</td>
+<td>-</td>
+<td>Mock폴백</td>
+<td><code>ai/suggest.ts</code>: <code>OPENAI_API_KEY</code> 있으면 OpenAI(gpt-4o-mini, JSON Schema), 없거나 실패/스키마위반 시 결정론적 Mock. 응답에 <code>source:&quot;openai&quot;|&quot;mock&quot;</code> 표기</td>
+</tr>
+<tr>
+<td>이미지 업로드</td>
+<td>O</td>
+<td>O</td>
+<td>-</td>
+<td>부분구현</td>
+<td><code>creator/uploads</code>가 <strong>로컬 FS</strong>(<code>public/uploads/</code>)에 저장. 외부 스토리지(Cloudinary/Supabase) 미연동 — README는 &quot;키 없으면 비활성화&quot;라 명시하나 코드는 키 무관 로컬 저장 동작. 배포(서버리스/Vercel) 환경에선 영속 불가</td>
+</tr>
+</tbody></table>
+<h3>폴백 정책 요약 (과장 금지 핵심)</h3>
+<ul>
+<li><strong>결제</strong>: <code>resolvePaymentProvider()</code>는 계약·작품주문에서만 사용. <strong>멤버십 가입·포스트 유료구매는 <code>mockPaymentProvider</code>를 코드상 직접 호출</strong>하므로 PG 키가 있어도 항상 Mock 결제. 실제 PG는 계약/작품주문 경로 + env 3종(STORE_ID/CHANNEL_KEY/API_SECRET) 모두 있을 때만.</li>
+<li><strong>AI</strong>: 키 없거나 호출 실패 시 <code>suggestMock</code>(djb2 시드 결정론적). 예외를 throw하지 않음.</li>
+<li><strong>이미지</strong>: 외부 스토리지 미구현. 로컬 파일시스템 저장만 존재(데모 한정, 영속성 한계).</li>
+<li><strong>소셜로그인</strong>: env 없으면 OAuth 미실행·안내 리다이렉트.</li>
+</ul>
+</body></html>

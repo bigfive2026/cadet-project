@@ -1,0 +1,223 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ArtBridge 시연 시나리오</title><style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,'Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif;color:#1f2933;line-height:1.65;margin:0;padding:36px;max-width:1180px;margin:0 auto}
+h1{color:#0b3b3e;border-bottom:3px solid #15c5ce;padding-bottom:10px;font-size:26px}
+h2{color:#127884;margin-top:1.8em;border-left:5px solid #15c5ce;padding-left:10px}
+h3{color:#127884;margin-top:1.4em}
+a{color:#0e7c8a}
+code{background:#eef2f6;padding:1px 6px;border-radius:4px;font-size:.9em;color:#0b3b3e;word-break:break-all}
+pre{background:#0b1220;color:#e2e8f0;padding:14px 16px;border-radius:8px;overflow:auto;font-size:13px}
+pre code{background:none;color:inherit}
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:12.5px;table-layout:fixed}
+th,td{border:1px solid #cbd5e1;padding:7px 9px;text-align:left;vertical-align:top;word-break:break-word;overflow-wrap:anywhere}
+th{background:#15c5ce;color:#fff;font-weight:600}
+tr:nth-child(even) td{background:#f8fafc}
+img{max-width:100%;height:auto;border-radius:8px}
+blockquote{border-left:4px solid #15c5ce;margin:14px 0;padding:8px 16px;background:#f0fdff;color:#334155;border-radius:0 8px 8px 0}
+hr{border:none;border-top:1px solid #e2e8f0;margin:24px 0}
+@media print{
+  body{padding:0;max-width:none}
+  table{font-size:9px}
+  th,td{padding:3px 5px}
+  tr{page-break-inside:avoid}
+  thead{display:table-header-group}
+  pre{font-size:8.5px;white-space:pre-wrap}
+  h2{page-break-after:avoid}
+}</style></head><body><h1>ArtBridge 시연 시나리오 · 스크립트 (v0.8 초안)</h1>
+<blockquote>
+<p>발표 라이브 시연용. 실제 동작하는 범위만 구성. <strong>결제는 Mock(항상 성공)</strong> 이므로 정직하게 안내한다.
+라이브 사고 대비 <strong>동일 흐름 3~4분 백업 영상</strong>을 반드시 준비한다.</p>
+</blockquote>
+<h2>0. 데모 환경 · 사전 준비</h2>
+<table>
+<thead>
+<tr>
+<th>항목</th>
+<th>값</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>배포 URL</td>
+<td><a href="https://cadet-project.vercel.app">https://cadet-project.vercel.app</a></td>
+</tr>
+<tr>
+<td>작가 계정</td>
+<td><code>creator@artbridge.demo</code></td>
+</tr>
+<tr>
+<td>팬 계정</td>
+<td><code>fan1@artbridge.demo</code> (또는 <code>fan2@artbridge.demo</code>)</td>
+</tr>
+<tr>
+<td>공통 비밀번호</td>
+<td><code>demo1234!</code></td>
+</tr>
+</tbody></table>
+<p><strong>준비 체크</strong></p>
+<ul>
+<li><input disabled="" type="checkbox"> 시크릿 창 <strong>2개</strong> 준비 — 한쪽은 작가, 한쪽은 팬으로 동시 로그인(역할 전환 대기시간 제거)</li>
+<li><input disabled="" type="checkbox"> 시연 직전 양쪽 미리 로그인 + 시작 탭(작가 목록/대시보드) 열어두기</li>
+<li><input disabled="" type="checkbox"> 결제 단계 멘트에 &quot;실제 PG는 미연결, <strong>Mock 결제로 흐름 시연</strong>&quot; 포함 (정직성 원칙)</li>
+<li><input disabled="" type="checkbox"> 백업 영상·PDF 로컬 저장, 네트워크 불안 대비</li>
+</ul>
+<h2>1. 라이브 시연 흐름 (약 3~4분)</h2>
+<blockquote>
+<p>핵심 메시지: <strong>&quot;팬이 작가를 발견 → 포트폴리오로 신뢰 → 신청·계약·결제까지 한 흐름으로 이어지는 양면형 거래&quot;</strong></p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>화면(경로)</th>
+<th>행동</th>
+<th>발표 멘트(요지)</th>
+<th>비고</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>탐색 <code>/</code> · <code>/creators</code></td>
+<td>카테고리 필터·검색으로 작가 탐색</td>
+<td>&quot;팬은 분야별로 창작자를 발견합니다&quot;</td>
+<td>공개 화면, 로그인 불필요</td>
+</tr>
+<tr>
+<td>2</td>
+<td><strong>포트폴리오</strong> <code>/creators/[id]</code> 소개탭</td>
+<td>스탯행 → 작가소개 → <strong>작품 갤러리</strong> → 진행 프로그램 → 멤버십 CTA 스크롤</td>
+<td>&quot;이번 통합에서 <strong>류진님 포트폴리오 흐름을 한진님 실데이터 위에 이식</strong>한 핵심 화면입니다&quot;</td>
+<td>★우리 작업 강조 포인트</td>
+</tr>
+<tr>
+<td>3</td>
+<td>프로그램 <code>/programs/[id]</code></td>
+<td>(팬) 프로그램 상세 → 신청</td>
+<td>&quot;관심 프로그램에 참여 신청&quot;</td>
+<td>무료=즉시 수락 / 유료=결제 단계로</td>
+</tr>
+<tr>
+<td>4</td>
+<td>작가 대시보드 <code>/dashboard/creator</code></td>
+<td>(작가) 신청자 확인 → 수락</td>
+<td>&quot;작가는 신청을 검토하고 수락&quot;</td>
+<td>수락 시 팬에게 알림 생성</td>
+</tr>
+<tr>
+<td>5</td>
+<td>알림 <code>/notifications</code></td>
+<td>(팬) 수락 알림 확인</td>
+<td>&quot;수락 알림이 실시간 인앱으로 전달&quot;</td>
+<td>외부 푸시 없음(인앱 전용)</td>
+</tr>
+<tr>
+<td>6</td>
+<td>계약 <code>/contracts/[id]</code></td>
+<td>금액 조율 → <strong>양측 서명</strong> → 결제(Mock)</td>
+<td>&quot;계약 금액 합의 후 양측 서명, 에스크로 결제&quot;</td>
+<td><strong>결제 Mock 안내 필수</strong></td>
+</tr>
+<tr>
+<td>7</td>
+<td>리뷰</td>
+<td>완료 승인 후 <strong>상호 리뷰</strong>(팬↔작가)</td>
+<td>&quot;거래 완료 후 양방향 평가로 신뢰 누적&quot;</td>
+<td>양방향 리뷰</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>시연 안정화 팁:</strong> 4<del>7단계는 라이브로 전 과정을 새로 만들면 시간이 길고 사고 위험이 큽니다.
+시드에 <strong>이미 진행 중인 신청·계약 상태</strong>가 있으므로, 신청(3)까지만 라이브로 보여주고
+수락·계약·결제 화면(4</del>7)은 <strong>미리 세팅된 상태를 열어 화면 위주로</strong> 보여주는 구성을 권장합니다.</p>
+</blockquote>
+<h2>2. 백업 영상 가이드 (3~4분)</h2>
+<ul>
+<li>위 1~7 흐름을 <strong>동일 순서</strong>로 화면 녹화 (1080p, 마우스 강조 권장)</li>
+<li>각 단계 2~3초 머무르며 핵심 화면이 보이도록</li>
+<li>결제 단계에 &quot;Mock 결제&quot; 자막 1줄</li>
+<li>파일: <code>artbridge-demo-backup.mp4</code> (로컬 + 드라이브 백업)</li>
+</ul>
+<h2>3. 발표 중 트러블슈팅</h2>
+<table>
+<thead>
+<tr>
+<th>상황</th>
+<th>대응</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>배포 사이트 느림/오류</td>
+<td>즉시 <strong>백업 영상</strong>으로 전환</td>
+</tr>
+<tr>
+<td>로그인 실패</td>
+<td>미리 로그인해 둔 시크릿 창 사용 / 계정·비번 재확인(<code>demo1234!</code>)</td>
+</tr>
+<tr>
+<td>결제 관련 질문</td>
+<td>&quot;데모는 Mock 결제(항상 성공). 실 PG(PortOne/Toss)는 키 연동 시 동작하도록 추상화돼 있음&quot;</td>
+</tr>
+<tr>
+<td>데이터가 바뀜</td>
+<td>공유 DB라 다른 계정 활동이 반영될 수 있음 — 시연 직전 상태 확인</td>
+</tr>
+</tbody></table>
+<h2>4. 정직성 멘트 (구현현황 기준, 과장 금지)</h2>
+<ul>
+<li><strong>결제</strong>: Mock 결제로 시연(실 PG 미연결). 계약·작품주문 경로는 키 연동 시 실 PG 전환 가능하도록 설계.</li>
+<li><strong>Google 로그인</strong>: 키 있을 때만 실제 OAuth, 없으면 비활성(가짜 로그인 아님). 데모는 이메일/비번 사용.</li>
+<li><strong>AI 추천</strong>: 키 없으면 결정론적 Mock. <strong>이미지 업로드</strong>: 로컬 저장(서버리스 비영속).</li>
+</ul>
+<h2>5. 캡처된 핵심 화면 (<code>docs/submission/screenshots/</code>)</h2>
+<p>배포 사이트에서 <strong>실제 로그인·이동하며 캡처</strong>(1440px·retina, 풀페이지). 로그인 정상 동작 확인 — 팬 <code>fan1@artbridge.demo</code>, 작가 <code>creator@artbridge.demo</code>(→ &quot;이서윤 / 서윤 라이트 아틀리에&quot;).</p>
+<table>
+<thead>
+<tr>
+<th>파일</th>
+<th>화면</th>
+<th>시연 단계</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>01-home-탐색.png</code></td>
+<td>홈/탐색 (히어로·추천 크리에이터·평점순)</td>
+<td>1</td>
+</tr>
+<tr>
+<td><code>02-creators-작가목록.png</code></td>
+<td>작가 목록 (카테고리 필터)</td>
+<td>1</td>
+</tr>
+<tr>
+<td><code>03-portfolio-소개탭.png</code></td>
+<td>★ <strong>작가 포트폴리오 소개탭 (이번 통합 핵심)</strong></td>
+<td>2</td>
+</tr>
+<tr>
+<td><code>04-programs-목록.png</code></td>
+<td>프로그램 목록</td>
+<td>3</td>
+</tr>
+<tr>
+<td><code>05-fan-대시보드.png</code></td>
+<td>팬 대시보드 (로그인)</td>
+<td>4·5</td>
+</tr>
+<tr>
+<td><code>06-notifications-알림.png</code></td>
+<td>알림 센터 (로그인)</td>
+<td>5</td>
+</tr>
+<tr>
+<td><code>07-creator-대시보드.png</code></td>
+<td>작가 대시보드 (로그인)</td>
+<td>4</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>계약·결제·리뷰 화면(6·7단계)은 특정 진행상태가 필요해 자동 캡처에서 제외했다 — 라이브/영상에서 <strong>시드된 진행 상태</strong>를 열어 보여준다.</p>
+</blockquote>
+<hr>
+<blockquote>
+<p>상태: <strong>v0.9</strong> — 핵심 화면 7종 캡처·검증 완료(= 해당 경로 P0 점검 통과: 위 화면 렌더 + 로그인 정상). 계약/리뷰 화면 캡처는 시드 상태 준비 후 추가 예정.</p>
+</blockquote>
+</body></html>

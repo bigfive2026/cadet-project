@@ -1,0 +1,70 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ArtBridge P0 점검 결과</title><style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,'Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif;color:#1f2933;line-height:1.65;margin:0;padding:36px;max-width:1180px;margin:0 auto}
+h1{color:#0b3b3e;border-bottom:3px solid #15c5ce;padding-bottom:10px;font-size:26px}
+h2{color:#127884;margin-top:1.8em;border-left:5px solid #15c5ce;padding-left:10px}
+h3{color:#127884;margin-top:1.4em}
+a{color:#0e7c8a}
+code{background:#eef2f6;padding:1px 6px;border-radius:4px;font-size:.9em;color:#0b3b3e;word-break:break-all}
+pre{background:#0b1220;color:#e2e8f0;padding:14px 16px;border-radius:8px;overflow:auto;font-size:13px}
+pre code{background:none;color:inherit}
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:12.5px;table-layout:fixed}
+th,td{border:1px solid #cbd5e1;padding:7px 9px;text-align:left;vertical-align:top;word-break:break-word;overflow-wrap:anywhere}
+th{background:#15c5ce;color:#fff;font-weight:600}
+tr:nth-child(even) td{background:#f8fafc}
+img{max-width:100%;height:auto;border-radius:8px}
+blockquote{border-left:4px solid #15c5ce;margin:14px 0;padding:8px 16px;background:#f0fdff;color:#334155;border-radius:0 8px 8px 0}
+hr{border:none;border-top:1px solid #e2e8f0;margin:24px 0}
+@media print{
+  body{padding:0;max-width:none}
+  table{font-size:9px}
+  th,td{padding:3px 5px}
+  tr{page-break-inside:avoid}
+  thead{display:table-header-group}
+  pre{font-size:8.5px;white-space:pre-wrap}
+  h2{page-break-after:avoid}
+}</style></head><body><h1>P0 전수 점검 결과 (배포본 런타임)</h1>
+<blockquote>
+<p>대상: <a href="https://cadet-project.vercel.app">https://cadet-project.vercel.app</a> · 일시: 2026-06-29
+방법: Playwright로 <strong>게스트/팬/작가</strong> 권한 전 페이지 라우트 탐색 → 5xx·런타임 크래시·에러오버레이·빈화면 검출
+계정: <code>fan1@artbridge.demo</code> · <code>creator@artbridge.demo</code> (<code>demo1234!</code>)</p>
+</blockquote>
+<h2>결과: 44개 페이지 라우트 전부 정상 — <strong>FAIL 0 · 404 0 · 크래시 0</strong></h2>
+<table>
+<thead>
+<tr>
+<th>권한</th>
+<th>라우트 수</th>
+<th>결과</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>게스트(공개)</td>
+<td>13</td>
+<td>전부 200 정상</td>
+</tr>
+<tr>
+<td>팬(로그인)</td>
+<td>13</td>
+<td>전부 200 정상</td>
+</tr>
+<tr>
+<td>작가(로그인)</td>
+<td>18</td>
+<td>전부 200 정상</td>
+</tr>
+<tr>
+<td><strong>합계</strong></td>
+<td><strong>44</strong></td>
+<td><strong>전부 200 · 차단 오류 없음</strong></td>
+</tr>
+</tbody></table>
+<ul>
+<li>동적 상세 라우트(계약 <code>/contracts/[id]</code>, 체크아웃 3종, 작가 프로그램 하위 <code>/dashboard/creator/programs/[id]/...</code>, 멤버십 편집 등)도 전부 200 렌더.</li>
+<li>단위 테스트 709 green과 <strong>별개로</strong>, 배포본 런타임 차원에서도 P0 통과를 확인.</li>
+</ul>
+<h2>점검 라우트 목록</h2>
+<p><strong>게스트(13):</strong> <code>/</code> · <code>/creators</code> · <code>/creators/[id]</code> · <code>/programs</code> · <code>/programs/[id]</code> · <code>/login</code> · <code>/signup</code> · <code>/support</code> · <code>/terms</code> · <code>/privacy</code> · <code>/design-system</code> · <code>/wireframes</code> · <code>/posts/[id]</code></p>
+<p><strong>팬(13):</strong> <code>/dashboard/fan</code> (+ applications · artwork-orders · bookmarks · memberships · payments · profile) · <code>/notifications</code> · <code>/artworks/[id]/checkout</code> · <code>/programs/[id]/checkout</code> · <code>/creators/[id]/memberships/[planId]/checkout</code> · <code>/contracts/[id]</code> · <code>/artwork-orders/[id]</code></p>
+<p><strong>작가(18):</strong> <code>/dashboard/creator</code> (+ artwork-orders · artworks · edit · members · memberships · memberships/new · payout-settings · posts/new · programs · programs/new · settlements · works · programs/[id] · programs/[id]/applications · programs/[id]/edit · programs/[id]/participants · memberships/[id]/edit)</p>
+</body></html>
